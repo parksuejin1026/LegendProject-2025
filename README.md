@@ -1,73 +1,40 @@
-# React + TypeScript + Vite
+# ♟️ PVE GOMOKU (오목) - Player vs. AI 
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## 💡 프로젝트 개요
 
-Currently, two official plugins are available:
+이 프로젝트는 학교 과제 제출을 목표로 개발된 **PVE (플레이어 대 컴퓨터)** 오목 게임입니다. 
+최소 기능 제품(MVP)에 중점을 두었으며, 미니멀리즘 디자인 원칙을 적용하여 깔끔하고 직관적인 사용자 인터페이스를 제공합니다.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 특징
+* **게임 모드:** 플레이어(흑돌) 대 무작위 AI(백돌)
+* **승리 조건:** 가로, 세로, 대각선 중 한 방향으로 5개의 돌을 먼저 놓는 경우 승리
 
-## React Compiler
+## ⚙️ 기술 스택
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+| 구분 | 기술 스택 | 설명 |
+| :--- | :--- | :--- |
+| **코어 로직** | **TypeScript** | 게임판 상태 관리, 턴 제어, 승리 판정 로직 구현 (클래스 기반) |
+| **프론트엔드** | **React (with TypeScript)** | 사용자 인터페이스(UI) 구성 및 상태 관리 (Custom Hooks 사용) |
+| **빌드 도구** | **Vite** | 빠르고 효율적인 개발 환경 및 번들링 제공 |
 
-## Expanding the ESLint configuration
+## 🚀 시작하는 방법
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+이 프로젝트는 Node.js와 npm을 사용하여 실행됩니다.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+1.  **프로젝트 클론 및 이동:**
+    ```bash
+    git clone [https://github.com/parksuejin1026/LegendProject-2025.git](https://github.com/parksuejin1026/LegendProject-2025.git)
+    cd LegendProject-2025/gomoku-pve 
+    ```
+    *(프로젝트 이름에 따라 경로를 확인하세요.)*
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+2.  **의존성 설치:**
+    ```bash
+    npm install
+    ```
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+3.  **개발 서버 실행:**
+    ```bash
+    npm run dev
+    ```
+    (브라우저가 열리고 게임을 플레이할 수 있습니다.)
