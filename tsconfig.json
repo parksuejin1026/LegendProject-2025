@@ -1,0 +1,30 @@
+// tsconfig.json (수정된 부분)
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "useDefineForClassFields": true,
+    // ⬇️ lib 옵션을 아래와 같이 수정합니다. ⬇️
+    "lib": ["ES2020", "DOM", "DOM.Iterable"], 
+    "module": "ESNext",
+    "skipLibCheck": true,
+
+    /* Bundler mode */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    
+    /* 이전 enum 오류 해결을 위해 추가했던 옵션 */
+    // "verbatimModuleSyntax": false, 
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true
+  },
+  "include": ["src"],
+  "references": [{ "path": "./tsconfig.node.json" }]
+}
