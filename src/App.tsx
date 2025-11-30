@@ -92,7 +92,7 @@ const App: React.FC = () => {
     return (
         <div style={appContainerStyle}>
             {/* [Refactor] <Container> */}
-            <h1 style={{ fontWeight: 300, letterSpacing: "2px" }}>
+            <h1 style={{ fontWeight: 600, letterSpacing: "2px" }}>
                 {/* [Refactor] <Title> */}
                 PVE GOMOKU (업그레이드)
             </h1>
