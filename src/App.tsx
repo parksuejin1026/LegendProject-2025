@@ -4,14 +4,117 @@ import React from "react";
 import { useGomokuGame } from "./hooks/useGomokuGame";
 import Board from "./components/Board";
 import { Player, GameState } from "./core/GomokuGame";
-// [Refactor] import styled from 'styled-components';
+import styled from 'styled-components';
+import Link from 'next/link';
 
-// [Refactor] Styled Components 정의 위치
-// 1. Container = styled.div ...
-// 2. Title = styled.h1 ...
-// 3. StatusMessage = styled.div<{ $isGameOver: boolean; $gameState: GameState }> ...
-// 4. RestartButton = styled.button<{ $isGameOver: boolean }> ...
-// 5. UndoButton = styled.button ...
+// --- Styled Components ---
+
+const Container = styled.div`
+  font-family: 'Inter', sans-serif;
+  max-width: 100%;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 40px 20px;
+  text-align: center;
+  background: linear-gradient(135deg, #1a1c20 0%, #0f1012 100%);
+  color: #e0e0e0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const Header = styled.header`
+  margin-bottom: 30px;
+`;
+
+const Title = styled.h1`
+  font-size: 2.5rem;
+  font-weight: 300;
+  letter-spacing: 4px;
+  margin: 0;
+  background: linear-gradient(to right, #fff, #a5a5a5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-transform: uppercase;
+`;
+
+const Divider = styled.hr`
+  border: none;
+  height: 1px;
+  background: linear-gradient(to right, transparent, #333, transparent);
+  margin: 20px 0;
+  width: 100%;
+  max-width: 600px;
+`;
+
+const StatusMessage = styled.div<{ $isGameOver: boolean; $gameState: GameState }>`
+  margin: 20px 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(5px);
+  color: ${({ $isGameOver, $gameState }) => {
+        if (!$isGameOver) return '#e0e0e0';
+        return $gameState === GameState.HumanWin ? '#4caf50' : '#f44336';
+    }};
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+`;
+
+const ButtonGroup = styled.div`
+  display: flex;
+  gap: 15px;
+  justify-content: center;
+  margin-top: 30px;
+`;
+
+const Button = styled.button<{ $primary?: boolean }>`
+  padding: 12px 24px;
+  font-size: 1rem;
+  cursor: pointer;
+  border: none;
+  background: ${({ $primary }) => ($primary ? '#ffffff' : 'rgba(255, 255, 255, 0.1)')};
+  color: ${({ $primary }) => ($primary ? '#0f1012' : '#ffffff')};
+  border-radius: 50px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    background: ${({ $primary }) => ($primary ? '#f0f0f0' : 'rgba(255, 255, 255, 0.2)')};
+  }
+
+  &:active {
+    transform: translateY(0);
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none;
+  }
+`;
+
+const HomeLink = styled(Link)`
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  color: #888;
+  text-decoration: none;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: color 0.2s;
+
+  &:hover {
+    color: #fff;
+  }
+`;
 
 const App: React.FC = () => {
     const {
@@ -44,69 +147,19 @@ const App: React.FC = () => {
         }
     };
 
-    // --- 스타일 정의 (미니멀리즘) ---
-    // [Refactor] 아래 스타일 객체들을 모두 제거하고 Styled Components로 이동
-    const appContainerStyle: React.CSSProperties = {
-        fontFamily: "sans-serif",
-        maxWidth: "800px",
-        margin: "0 auto",
-        padding: "20px",
-        textAlign: "center",
-    };
-    const statusStyle: React.CSSProperties = {
-        margin: "20px 0",
-        fontSize: "24px",
-        fontWeight: "bold",
-        color: isGameOver
-            ? gameState === GameState.HumanWin
-                ? "#28a745"
-                : "#dc3545"
-            : "#333",
-    };
-    const restartButtonStyle: React.CSSProperties = {
-        padding: "10px 30px",
-        fontSize: "16px",
-        cursor: "pointer",
-        border: "1px solid #ccc",
-        backgroundColor: isGameOver ? "#007bff" : "#f8f9fa",
-        color: isGameOver ? "#fff" : "#333",
-        borderRadius: "5px",
-        fontWeight: "bold",
-    };
-    const undoButtonStyle: React.CSSProperties = {
-        padding: "8px 15px",
-        fontSize: "14px",
-        cursor: "pointer",
-        border: "1px solid #ffc107",
-        backgroundColor: "#ffc107",
-        color: "#333",
-        borderRadius: "5px",
-        fontWeight: "bold",
-        marginLeft: "10px",
-        display:
-            currentPlayer === Player.Human && !isGameOver
-                ? "inline-block"
-                : "none",
-    };
-
     return (
-        <div style={appContainerStyle}>
-            {/* [Refactor] <Container> */}
-            <h1 style={{ fontWeight: 300, letterSpacing: "2px" }}>
-                {/* [Refactor] <Title> */}
-                PVE GOMOKU (업그레이드)
-            </h1>
+        <Container>
+            <HomeLink href="/">← 메인으로</HomeLink>
 
-            <hr
-                style={{
-                    border: "none",
-                    borderTop: "1px solid #eee",
-                    margin: "20px 0",
-                }}
-            />
+            <Header>
+                <Title>PVE GOMOKU</Title>
+            </Header>
 
-            <div style={statusStyle}>{getStatusMessage()}</div>
-            {/* [Refactor] <StatusMessage $isGameOver={isGameOver} $gameState={gameState}> */}
+            <Divider />
+
+            <StatusMessage $isGameOver={isGameOver} $gameState={gameState}>
+                {getStatusMessage()}
+            </StatusMessage>
 
             <Board
                 boardState={boardState}
@@ -117,18 +170,18 @@ const App: React.FC = () => {
                 winLine={winLine}
             />
 
-            <div style={{ textAlign: "center" }}>
-                <button onClick={restartGame} style={restartButtonStyle}>
-                    {/* [Refactor] <RestartButton $isGameOver={isGameOver} onClick={restartGame}> */}
-                    다시 시작하기
-                </button>
+            <ButtonGroup>
+                <Button onClick={restartGame} $primary={isGameOver}>
+                    {isGameOver ? '새 게임 시작' : '다시 시작하기'}
+                </Button>
 
-                <button onClick={undoMove} style={undoButtonStyle}>
-                    {/* [Refactor] <UndoButton onClick={undoMove}> */}⏪
-                    되돌리기
-                </button>
-            </div>
-        </div>
+                {currentPlayer === Player.Human && !isGameOver && (
+                    <Button onClick={undoMove}>
+                        ⏪ 되돌리기
+                    </Button>
+                )}
+            </ButtonGroup>
+        </Container>
     );
 };
 

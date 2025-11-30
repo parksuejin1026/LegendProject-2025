@@ -32,27 +32,29 @@ const Stone = styled.div<{
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    width: 80%;
-    height: 80%;
+    width: 85%;
+    height: 85%;
     border-radius: 50%;
     z-index: 10;
+    box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
 
-    /* 돌 색상 처리 */
-    background-color: ${({ $player }) =>
+    /* 돌 색상 처리 (3D Gradient) */
+    background: ${({ $player }) =>
         $player === Player.Human
-            ? "#000"
+            ? "radial-gradient(circle at 30% 30%, #555, #000)"
             : $player === Player.AI
-            ? "#fff"
-            : "transparent"};
-    border: ${({ $player }) =>
-        $player === Player.AI ? "1px solid #ccc" : "none"};
+                ? "radial-gradient(circle at 30% 30%, #fff, #ccc)"
+                : "transparent"};
+            
+    /* 투명한 돌은 그림자 제거 */
+    box-shadow: ${({ $player }) => $player === Player.Empty ? 'none' : '2px 2px 4px rgba(0, 0, 0, 0.4)'};
 
     /* 승리 라인 하이라이트 */
     ${({ $isOnWinLine }) =>
         $isOnWinLine &&
         css`
             animation: ${pulse} 1s infinite alternate;
-            box-shadow: 0 0 10px 5px gold;
+            box-shadow: 0 0 15px 5px gold;
         `}
 
     /* 마지막 수 강조 (승리 라인이 아닐 때만) */
@@ -60,7 +62,18 @@ const Stone = styled.div<{
         !$isOnWinLine &&
         $isLastMove &&
         css`
-            box-shadow: 0 0 0 3px red;
+            &::after {
+                content: '';
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                width: 30%;
+                height: 30%;
+                background-color: rgba(255, 0, 0, 0.8);
+                border-radius: 50%;
+                box-shadow: 0 0 5px red;
+            }
         `}
 `;
 
