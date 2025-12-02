@@ -94,7 +94,7 @@ const App: React.FC = () => {
             {/* [Refactor] <Container> */}
             <h1 style={{ fontWeight: 600, letterSpacing: "2px" }}>
                 {/* [Refactor] <Title> */}
-                PVE GOMOKU (업그레이드)
+                PVE GOMOKU
             </h1>
 
             <hr
