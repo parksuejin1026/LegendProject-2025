@@ -27,7 +27,7 @@
 
 1.  **프로젝트 클론 및 이동:**
     ```bash
-    git clone [https://github.com/parksuejin1026/LegendProject-2025.git](https://github.com/parksuejin1026/LegendProject-2025.git)
+    git clone https://github.com/parksuejin1026/LegendProject-2025.git
     cd LegendProject-2025/gomoku-pve 
     ```
     *(프로젝트 이름에 따라 경로를 확인하세요.)*
