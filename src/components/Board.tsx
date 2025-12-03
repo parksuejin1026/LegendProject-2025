@@ -1,7 +1,7 @@
 // src/components/Board.tsx
 /**
  * 오목판 컴포넌트
- * 
+ *
  * 게임 보드를 렌더링하고 각 셀(Cell)을 배치합니다.
  * 보드 크기에 따라 그리드를 생성하고, 승리 라인 및 마지막 수를 표시하는 역할을 합니다.
  */
@@ -10,72 +10,194 @@ import React from 'react';
 import { Player } from '../core/GomokuGame';
 import Cell from './Cell';
 import styled from 'styled-components';
+import SoundManager from '../core/SoundManager';
+import { Theme } from '../styles/theme';
 
 interface BoardProps {
-    boardState: Player[][]; // 현재 보드 상태 (2차원 배열)
-    boardSize: number;      // 보드 크기 (예: 15x15)
-    onCellClick: (row: number, col: number) => void; // 셀 클릭 핸들러
-    isGameOver: boolean;    // 게임 종료 여부
-    lastMove: { row: number, col: number } | null; // 마지막 착수 위치
-    winLine: { row: number, col: number }[] | null; // 승리 라인 좌표 배열
+  boardState: Player[][]; // 현재 보드 상태 (2차원 배열)
+  boardSize: number; // 보드 크기 (예: 15x15)
+  onCellClick: (row: number, col: number) => void; // 셀 클릭 핸들러
+  isGameOver: boolean; // 게임 종료 여부
+  lastMove: { row: number; col: number } | null; // 마지막 착수 위치
+  winLine: { row: number; col: number }[] | null; // 승리 라인 좌표 배열
+  heuristicMap: number[][] | null; // AI 평가 점수 맵
+  checkForbidden: (row: number, col: number) => boolean; // 금지수 확인 함수
 }
 
 // --- 스타일된 컴포넌트 ---
 
-const BoardContainer = styled.div<{ $size: number }>`
-  display: grid;
-  grid-template-columns: repeat(${props => props.$size}, 1fr);
+const BoardContainer = styled.div<{ $size: number; theme: Theme }>`
+  position: relative;
   width: min(90vw, 600px);
   height: min(90vw, 600px);
-  background-color: #34495e; /* Dark Slate */
-  border: 4px solid #2c3e50;
+  background: linear-gradient(135deg, #d4a574 0%, #c19a6b 50%, #b8956a 100%);
+  border: 8px solid #8b6f47;
   margin: 20px auto;
-  box-sizing: content-box;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  border-radius: 4px;
-`;
-
-const CellWrapper = styled.div<{ $row: number; $col: number; $size: number }>`
-  border-top: 1px solid #5d6d7e;
-  border-left: 1px solid #5d6d7e;
+  padding: 30px;
   box-sizing: border-box;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  box-shadow: 
+    0 10px 40px rgba(0, 0, 0, 0.4),
+    0 0 0 2px #6b5638,
+    inset 0 2px 4px rgba(255, 255, 255, 0.2),
+    inset 0 -2px 4px rgba(0, 0, 0, 0.3);
+  border-radius: 8px;
   
-  /* 
-     외곽선 처리:
-     오목판의 가장자리 선을 깔끔하게 처리하기 위해 마지막 열과 행의 테두리를 제거합니다.
-  */
-  
-  border-right: ${props => props.$col === props.$size - 1 ? 'none' : '1px solid #5d6d7e'};
-  border-bottom: ${props => props.$row === props.$size - 1 ? 'none' : '1px solid #5d6d7e'};
+  /* 나무 질감 효과 */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    bottom: 8px;
+    background-image: 
+      repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 2px,
+        rgba(139, 111, 71, 0.03) 2px,
+        rgba(139, 111, 71, 0.03) 4px
+      ),
+      repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(139, 111, 71, 0.03) 2px,
+        rgba(139, 111, 71, 0.03) 4px
+      );
+    pointer-events: none;
+    border-radius: 4px;
+  }
 `;
 
-const Board: React.FC<BoardProps> = ({ boardState, boardSize, onCellClick, isGameOver, lastMove, winLine }) => {
-    // 특정 좌표가 승리 라인에 포함되는지 확인하는 헬퍼 함수
-    const isCoordinateInWinLine = (r: number, c: number) => {
-        if (!winLine) return false;
-        return winLine.some(coord => coord.row === r && coord.col === c);
-    };
+const GridLines = styled.svg`
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  right: 30px;
+  bottom: 30px;
+  width: calc(100% - 60px);
+  height: calc(100% - 60px);
+  pointer-events: none;
+`;
 
-    return (
-        <BoardContainer $size={boardSize}>
-            {boardState.map((row, r) => (
-                row.map((cellValue, c) => (
-                    <CellWrapper key={`${r}-${c}`} $row={r} $col={c} $size={boardSize}>
-                        <Cell
-                            value={cellValue}
-                            onClick={() => onCellClick(r, c)}
-                            isGameOver={isGameOver}
-                            isLastMove={lastMove?.row === r && lastMove?.col === c}
-                            isOnWinLine={isCoordinateInWinLine(r, c)}
-                        />
-                    </CellWrapper>
-                ))
-            ))}
-        </BoardContainer>
+const IntersectionPoint = styled.div<{ $row: number; $col: number; $size: number }>`
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  top: calc(30px + (100% - 60px) * ${props => props.$row} / ${props => props.$size - 1} - 20px);
+  left: calc(30px + (100% - 60px) * ${props => props.$col} / ${props => props.$size - 1} - 20px);
+  cursor: pointer;
+  z-index: 10;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+  
+  &:hover {
+    background-color: rgba(255, 255, 255, 0.1);
+  }
+  
+  /* 화점 (Star Points) */
+  ${(props) => {
+    const isStarPoint = props.$size === 15 && (
+      (props.$row === 3 && props.$col === 3) ||
+      (props.$row === 3 && props.$col === 11) ||
+      (props.$row === 7 && props.$col === 7) ||
+      (props.$row === 11 && props.$col === 3) ||
+      (props.$row === 11 && props.$col === 11)
     );
+
+    return isStarPoint ? `
+      &::before {
+        content: '';
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 8px;
+        height: 8px;
+        background-color: rgba(93, 77, 54, 0.8);
+        border-radius: 50%;
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        z-index: 1;
+      }
+    ` : '';
+  }}
+`;
+
+const Board: React.FC<BoardProps> = ({
+  boardState,
+  boardSize,
+  onCellClick,
+  isGameOver,
+  lastMove,
+  winLine,
+  heuristicMap,
+  checkForbidden,
+}) => {
+  const [hoveredCell, setHoveredCell] = React.useState<{ row: number; col: number } | null>(null);
+
+  // 특정 좌표가 승리 라인에 포함되는지 확인하는 헬퍼 함수
+  const isCoordinateInWinLine = (r: number, c: number) => {
+    if (!winLine) return false;
+    return winLine.some((coord) => coord.row === r && coord.col === c);
+  };
+
+  return (
+    <BoardContainer $size={boardSize}>
+      {/* 바둑판 선 그리기 */}
+      <GridLines>
+        {/* 세로선 */}
+        {Array.from({ length: boardSize }).map((_, i) => (
+          <line
+            key={`v-${i}`}
+            x1={`${(i / (boardSize - 1)) * 100}%`}
+            y1="0%"
+            x2={`${(i / (boardSize - 1)) * 100}%`}
+            y2="100%"
+            stroke="rgba(93, 77, 54, 0.6)"
+            strokeWidth="1.5"
+          />
+        ))}
+        {/* 가로선 */}
+        {Array.from({ length: boardSize }).map((_, i) => (
+          <line
+            key={`h-${i}`}
+            x1="0%"
+            y1={`${(i / (boardSize - 1)) * 100}%`}
+            x2="100%"
+            y2={`${(i / (boardSize - 1)) * 100}%`}
+            stroke="rgba(93, 77, 54, 0.6)"
+            strokeWidth="1.5"
+          />
+        ))}
+      </GridLines>
+
+      {/* 교차점에 돌 배치 */}
+      {boardState.map((row, r) =>
+        row.map((cellValue, c) => (
+          <IntersectionPoint key={`${r}-${c}`} $row={r} $col={c} $size={boardSize}>
+            <Cell
+              value={cellValue}
+              onClick={() => {
+                onCellClick(r, c);
+                if (cellValue === Player.Empty && !isGameOver) {
+                  SoundManager.playPlaceStone();
+                }
+              }}
+              isGameOver={isGameOver}
+              isLastMove={lastMove?.row === r && lastMove?.col === c}
+              isOnWinLine={isCoordinateInWinLine(r, c)}
+              heuristicScore={heuristicMap ? heuristicMap[r][c] : undefined}
+              checkForbidden={() => checkForbidden(r, c)}
+              isHovered={hoveredCell?.row === r && hoveredCell?.col === c}
+              onMouseEnter={() => setHoveredCell({ row: r, col: c })}
+              onMouseLeave={() => setHoveredCell(null)}
+            />
+          </IntersectionPoint>
+        ))
+      )}
+    </BoardContainer>
+  );
 };
 
 export default Board;
