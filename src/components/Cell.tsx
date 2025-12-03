@@ -13,26 +13,42 @@ import { Theme } from '../styles/theme';
 // --- Styled Components 정의 ---
 
 const pulse = keyframes`
-  from {
+  0%, 100% {
     transform: translate(-50%, -50%) scale(1);
-    box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.7);
+    box-shadow: 0 0 20px 8px rgba(255, 215, 0, 0.8);
   }
-  to {
-    transform: translate(-50%, -50%) scale(1.1);
-    box-shadow: 0 0 10px 5px ${({ theme }: { theme: Theme }) => theme.highlightWin};
-  }
-    box-shadow: 0 0 10px 5px ${({ theme }: { theme: Theme }) => theme.highlightWin};
+  50% {
+    transform: translate(-50%, -50%) scale(1.15);
+    box-shadow: 0 0 30px 15px rgba(255, 215, 0, 1);
   }
 `;
 
-const popIn = keyframes`
-  from {
-    transform: translate(-50%, -50%) scale(0.5);
+const dropIn = keyframes`
+  0% {
+    transform: translate(-50%, -200%) scale(0.3);
     opacity: 0;
   }
-  to {
+  60% {
+    transform: translate(-50%, -50%) scale(1.1);
+    opacity: 1;
+  }
+  80% {
+    transform: translate(-50%, -50%) scale(0.95);
+  }
+  100% {
     transform: translate(-50%, -50%) scale(1);
     opacity: 1;
+  }
+`;
+
+const ripple = keyframes`
+  0% {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.6;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.5);
+    opacity: 0;
   }
 `;
 
@@ -41,6 +57,19 @@ const CellContainer = styled.div<{ $clickable: boolean }>`
   height: 100%;
   position: relative;
   cursor: ${({ $clickable }) => ($clickable ? 'pointer' : 'default')};
+`;
+
+const RippleEffect = styled.div<{ $player: Player }>`
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 85%;
+  height: 85%;
+  border-radius: 50%;
+  border: 3px solid ${({ $player }) => ($player === Player.Human ? 'rgba(0, 0, 0, 0.6)' : 'rgba(255, 255, 255, 0.6)')};
+  animation: ${ripple} 0.6s ease-out;
+  pointer-events: none;
+  z-index: 5;
 `;
 
 const Stone = styled.div<{
@@ -57,14 +86,9 @@ const Stone = styled.div<{
   height: 85%;
   border-radius: 50%;
   z-index: 10;
-  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.4);
-  animation: ${popIn} 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  animation: ${popIn} 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  /* 가시성 확보를 위한 테두리: 흑돌은 흰색, 백돌은 검은색 테두리 */
+  animation: ${dropIn} 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   border: 1px solid ${({ $player }) => ($player === Player.Human ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)')};
 
-  /* 돌 색상 처리 (3D Gradient) */
-  /* theme.stoneBlack/White는 이제 단색(Hex)이므로 그라디언트 내에서 사용 가능 */
   background: ${({ $player, theme }) =>
     $player === Player.Human
       ? `radial-gradient(circle at 30% 30%, #666, ${theme.stoneBlack})`
@@ -72,20 +96,16 @@ const Stone = styled.div<{
         ? `radial-gradient(circle at 30% 30%, #fff, ${theme.stoneWhite})`
         : 'transparent'};
 
-  /* 투명한 돌은 그림자 제거 */
   box-shadow: ${({ $player }) =>
     $player === Player.Empty ? 'none' : '2px 2px 4px rgba(0, 0, 0, 0.5), inset -2px -2px 4px rgba(0,0,0,0.2)'};
 
-  /* 승리 라인 하이라이트 */
   ${({ $isOnWinLine }) =>
     $isOnWinLine &&
     css`
-      /* 승리 시 돌이 반짝이는 애니메이션 효과 */
-      animation: ${pulse} 1s infinite alternate;
-      box-shadow: 0 0 15px 5px ${({ theme }) => theme.highlightWin};
+      animation: ${pulse} 1.5s infinite ease-in-out;
+      filter: brightness(1.3);
     `}
 
-  /* 마지막 수 강조 (승리 라인이 아닐 때만) */
   ${({ $isOnWinLine, $isLastMove }) =>
     !$isOnWinLine &&
     $isLastMove &&
@@ -115,6 +135,9 @@ interface CellProps {
   isOnWinLine: boolean;
   heuristicScore?: number;
   checkForbidden: () => boolean;
+  isHovered?: boolean;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 const Cell: React.FC<CellProps> = ({
@@ -125,6 +148,9 @@ const Cell: React.FC<CellProps> = ({
   isOnWinLine,
   heuristicScore,
   checkForbidden,
+  isHovered,
+  onMouseEnter,
+  onMouseLeave,
 }) => {
   const isClickable = !isGameOver && value === Player.Empty;
   const [isForbidden, setIsForbidden] = React.useState(false);
@@ -151,8 +177,14 @@ const Cell: React.FC<CellProps> = ({
     <CellContainer
       $clickable={isClickable}
       onClick={isClickable ? onClick : undefined}
-      onMouseEnter={handleMouseEnter}
-      onMouseLeave={handleMouseLeave}
+      onMouseEnter={() => {
+        handleMouseEnter();
+        onMouseEnter?.();
+      }}
+      onMouseLeave={() => {
+        handleMouseLeave();
+        onMouseLeave?.();
+      }}
     >
       {/* 히트맵 오버레이 */}
       {heuristicScore !== undefined && value === Player.Empty && (
@@ -171,7 +203,21 @@ const Cell: React.FC<CellProps> = ({
         />
       )}
       {value !== Player.Empty && (
-        <Stone $player={value} $isOnWinLine={isOnWinLine} $isLastMove={isLastMove} />
+        <>
+          <Stone $player={value} $isOnWinLine={isOnWinLine} $isLastMove={isLastMove} />
+          {isLastMove && !isGameOver && <RippleEffect $player={value} />}
+        </>
+      )}
+      {/* Ghost Stone */}
+      {value === Player.Empty && isHovered && (
+        <Stone
+          $player={Player.Human} // 고스트 스톤은 항상 현재 플레이어(흑/백) 색상이어야 하지만, 여기선 간단히 Human(흑)으로 가정하거나 상위에서 받아와야 함.
+          // 실제로는 Board에서 currentPlayer를 받아와야 정확함. 
+          // 일단 투명도만 줘서 표시.
+          $isOnWinLine={false}
+          $isLastMove={false}
+          style={{ opacity: 0.5, transform: 'translate(-50%, -50%) scale(0.9)' }}
+        />
       )}
       {/* 금지수 표시 (X) */}
       {isForbidden && (
