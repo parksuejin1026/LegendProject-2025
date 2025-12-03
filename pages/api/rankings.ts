@@ -13,11 +13,11 @@ export default async function handler(
     try {
         await dbConnect();
 
-        // 승리 수(stats.wins) 내림차순으로 상위 10명 조회
+        // pveStats와 pvpStats를 모두 포함하여 조회
         const rankings = await User.find({})
-            .select('username stats')
-            .sort({ 'stats.wins': -1 })
-            .limit(10);
+            .select('username pveStats pvpStats')
+            .sort({ 'pveStats.wins': -1 }) // 기본 정렬은 PvE 승리 순 (클라이언트에서 재정렬 가능)
+            .limit(20);
 
         res.status(200).json(rankings);
     } catch (error) {

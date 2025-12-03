@@ -45,6 +45,35 @@ const ioHandler = (_req: NextApiRequest, res: NextApiResponseServerIO) => {
                 socket.to(data.roomId).emit('game-over', data);
             });
 
+            socket.on('send-emote', (data) => {
+                socket.to(data.roomId).emit('receive-emote', data.emote);
+            });
+
+            socket.on('quick-match', () => {
+                let foundRoom = null;
+                const rooms = io.sockets.adapter.rooms;
+
+                for (const [roomId, participants] of rooms) {
+                    // socket.id와 같은 방은 제외 (자신의 개인 방)
+                    if (roomId !== socket.id && participants.size === 1) {
+                        foundRoom = roomId;
+                        break;
+                    }
+                }
+
+                if (foundRoom) {
+                    socket.join(foundRoom);
+                    console.log(`Socket ${socket.id} joined room ${foundRoom} (Quick Match)`);
+                    socket.emit('room-joined', { roomId: foundRoom, role: 'guest' }); // 게스트 (백돌)
+                    socket.to(foundRoom).emit('user-connected', socket.id);
+                } else {
+                    const newRoomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+                    socket.join(newRoomId);
+                    console.log(`Socket ${socket.id} created room ${newRoomId} (Quick Match)`);
+                    socket.emit('room-joined', { roomId: newRoomId, role: 'host' }); // 호스트 (흑돌)
+                }
+            });
+
             socket.on('disconnect', () => {
                 console.log('Socket disconnected:', socket.id);
             });

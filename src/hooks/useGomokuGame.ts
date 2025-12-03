@@ -36,9 +36,9 @@ export const useGomokuGame = () => {
   }, [showHeatmap]);
 
   const handleMove = useCallback(
-    (row: number, col: number) => {
-      // 게임 중이 아니면 무시
-      if (gameInstance.getGameState() !== GameState.Playing) return;
+    (row: number, col: number, isRemote: boolean = false) => {
+      // 게임 중이 아니면 무시 (단, 리모트 무브는 강제 적용 가능성을 열어둠)
+      if (gameInstance.getGameState() !== GameState.Playing && !isRemote) return;
 
       // 착수 시도
       const moveSuccess = gameInstance.makeMove(row, col);
@@ -53,10 +53,42 @@ export const useGomokuGame = () => {
           gameInstance.getCurrentPlayer() === Player.AI &&
           gameInstance.getGameState() === GameState.Playing
         ) {
-          setTimeout(() => {
-            gameInstance.handleAIMove();
-            updateGameState(gameInstance); // AI 착수 후 UI 업데이트
+          // 30초 타임아웃 로직 적용
+          const aiMoveTimer = setTimeout(() => {
+            try {
+              gameInstance.handleAIMove();
+              updateGameState(gameInstance);
+            } catch (e) {
+              // 에러 발생 시 (혹은 타임아웃 시뮬레이션) 랜덤 착수
+              console.error("AI Error", e);
+            }
           }, 500);
+
+          // 타임아웃 안전장치 (30초)
+          const timeoutTimer = setTimeout(() => {
+            if (gameInstance.getCurrentPlayer() === Player.AI && gameInstance.getGameState() === GameState.Playing) {
+              console.warn("AI Timeout forced.");
+              // 랜덤 착수
+              const size = gameInstance.getBoardSize();
+              let r, c;
+              let attempts = 0;
+              do {
+                r = Math.floor(Math.random() * size);
+                c = Math.floor(Math.random() * size);
+                attempts++;
+              } while (gameInstance.getBoardState()[r][c] !== Player.Empty && attempts < 100);
+
+              if (attempts < 100) {
+                gameInstance.makeMove(r, c);
+                updateGameState(gameInstance);
+              }
+            }
+          }, 30000);
+
+          return () => {
+            clearTimeout(aiMoveTimer);
+            clearTimeout(timeoutTimer);
+          };
         }
       } else {
         // 착수 실패 (금지수 등)
@@ -71,6 +103,8 @@ export const useGomokuGame = () => {
     },
     [gameInstance, updateGameState]
   );
+
+
 
   // ⏪ Undo 기능
   const undoMove = useCallback(() => {

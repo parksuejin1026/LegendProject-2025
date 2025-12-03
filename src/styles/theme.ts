@@ -12,6 +12,8 @@ export interface Theme {
     stoneWhite: string;
     highlightWin: string;
     highlightLast: string;
+    stoneShadow: string;
+    boardShadow: string;
 }
 
 export const themes: Record<string, Theme> = {
@@ -29,6 +31,8 @@ export const themes: Record<string, Theme> = {
         stoneWhite: '#ffffff',
         highlightWin: 'gold',
         highlightLast: 'rgba(255, 0, 0, 0.8)',
+        stoneShadow: '2px 2px 4px rgba(0, 0, 0, 0.4)',
+        boardShadow: '0 10px 30px rgba(0, 0, 0, 0.5)',
     },
     classic: {
         name: 'Classic Wood',
@@ -44,6 +48,8 @@ export const themes: Record<string, Theme> = {
         stoneWhite: '#ffffff',
         highlightWin: '#ff4500',
         highlightLast: 'rgba(255, 0, 0, 0.8)',
+        stoneShadow: '3px 3px 6px rgba(0, 0, 0, 0.6)',
+        boardShadow: '0 10px 30px rgba(0, 0, 0, 0.6)',
     },
     neon: {
         name: 'Cyber Neon',
@@ -59,5 +65,7 @@ export const themes: Record<string, Theme> = {
         stoneWhite: '#e0e0ff',
         highlightWin: '#ff00ff',
         highlightLast: '#ffff00',
+        stoneShadow: '0 0 10px #00ffff',
+        boardShadow: '0 0 20px #00ffff',
     },
 };

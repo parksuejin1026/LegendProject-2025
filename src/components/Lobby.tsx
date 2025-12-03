@@ -40,43 +40,43 @@ const Button = styled.button`
 `;
 
 interface LobbyProps {
-    onJoinRoom: (roomId: string) => void;
+  onJoinRoom: (roomId: string, role: 'host' | 'guest') => void;
 }
 
 const Lobby: React.FC<LobbyProps> = ({ onJoinRoom }) => {
-    const [roomId, setRoomId] = useState('');
+  const [roomId, setRoomId] = useState('');
 
-    const handleCreateRoom = () => {
-        const newRoomId = Math.random().toString(36).substring(2, 8).toUpperCase();
-        onJoinRoom(newRoomId);
-    };
+  const handleCreateRoom = () => {
+    const newRoomId = Math.random().toString(36).substring(2, 8).toUpperCase();
+    onJoinRoom(newRoomId, 'host');
+  };
 
-    const handleJoinRoom = () => {
-        if (roomId.trim()) {
-            onJoinRoom(roomId.toUpperCase());
-        }
-    };
+  const handleJoinRoom = () => {
+    if (roomId.trim()) {
+      onJoinRoom(roomId.toUpperCase(), 'guest');
+    }
+  };
 
-    return (
-        <LobbyContainer>
-            <Title>🌐 온라인 대기실</Title>
-            <div style={{ marginBottom: '20px' }}>
-                <p style={{ marginBottom: '10px' }}>새로운 방을 만들고 친구를 초대하세요!</p>
-                <Button onClick={handleCreateRoom}>방 만들기</Button>
-            </div>
-            <hr style={{ borderColor: 'rgba(255,255,255,0.1)', margin: '20px 0' }} />
-            <div>
-                <p style={{ marginBottom: '10px' }}>또는 방 코드를 입력하여 참가하세요.</p>
-                <Input
-                    type="text"
-                    placeholder="방 코드 입력"
-                    value={roomId}
-                    onChange={(e) => setRoomId(e.target.value)}
-                />
-                <Button onClick={handleJoinRoom}>참가하기</Button>
-            </div>
-        </LobbyContainer>
-    );
+  return (
+    <LobbyContainer>
+      <Title>🌐 온라인 대기실</Title>
+      <div style={{ marginBottom: '20px' }}>
+        <p style={{ marginBottom: '10px' }}>새로운 방을 만들고 친구를 초대하세요!</p>
+        <Button onClick={handleCreateRoom}>방 만들기</Button>
+      </div>
+      <hr style={{ borderColor: 'rgba(255,255,255,0.1)', margin: '20px 0' }} />
+      <div>
+        <p style={{ marginBottom: '10px' }}>또는 방 코드를 입력하여 참가하세요.</p>
+        <Input
+          type="text"
+          placeholder="방 코드 입력"
+          value={roomId}
+          onChange={(e) => setRoomId(e.target.value)}
+        />
+        <Button onClick={handleJoinRoom}>참가하기</Button>
+      </div>
+    </LobbyContainer>
+  );
 };
 
 export default Lobby;
