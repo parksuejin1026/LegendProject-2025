@@ -7,25 +7,35 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "format": "prettier --write ."
   },
   "dependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/mongoose": "^5.11.96",
+    "bcryptjs": "^3.0.3",
+    "canvas-confetti": "^1.9.4",
+    "mongoose": "^9.0.0",
     "next": "^14.2.5",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "styled-component": "^2.8.0",
+    "socket.io": "^4.8.1",
+    "socket.io-client": "^4.8.1",
     "styled-components": "^6.1.19"
   },
   "devDependencies": {
     "@eslint/js": "^8.57.0",
-    "@types/node": "^24.10.0",
+    "@types/node": "^20.11.0",
     "@types/react": "^18.2.66",
     "@types/react-dom": "^18.2.22",
     "eslint": "^8.57.0",
     "eslint-config-next": "^14.2.5",
+    "eslint-config-prettier": "^9.1.0",
     "eslint-plugin-react-hooks": "^7.0.1",
     "globals": "^16.5.0",
-    "typescript": "~5.9.3",
+    "prettier": "^3.2.5",
+    "typescript": "^5.4.0",
     "typescript-eslint": "^8.46.3"
   }
 }

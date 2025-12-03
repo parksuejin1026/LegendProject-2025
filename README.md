@@ -1,13 +1,21 @@
-# ♟️ PVE GOMOKU (오목) - Player vs. AI 
+# ♟️ LEGEND GOMOKU (오목)
 
 ## 💡 프로젝트 개요
 
-이 프로젝트는 학교 과제 제출을 목표로 개발된 **PVE (플레이어 대 컴퓨터)** 오목 게임입니다. 
-최소 기능 제품(MVP)에 중점을 두었으며, 미니멀리즘 디자인 원칙을 적용하여 깔끔하고 직관적인 사용자 인터페이스를 제공합니다.
+이 프로젝트는 **PVE (플레이어 대 AI)** 및 **PVP (플레이어 대 플레이어)** 모드를 지원하는 웹 기반 오목 게임입니다.
+Next.js와 TypeScript로 개발되었으며, 강력한 AI, 사운드 효과, 전적 기록 등 다양한 기능을 제공합니다.
 
-### 특징
-* **게임 모드:** 플레이어(흑돌) 대 무작위 AI(백돌)
-* **승리 조건:** 가로, 세로, 대각선 중 한 방향으로 5개의 돌을 먼저 놓는 경우 승리
+### ✨ 주요 기능
+
+- **🤖 스마트 AI (Minimax)**:
+  - Minimax 알고리즘과 Alpha-Beta 가지치기를 적용한 강력한 AI
+  - **3단계 난이도**: Easy (초보), Medium (중수), Hard (고수)
+- **👥 2인용 모드 (PVP)**: 친구와 함께 한 화면에서 대결 가능
+- **🎨 몰입감 있는 UI/UX**:
+  - 돌을 놓을 때의 타격감 있는 사운드 효과
+  - 승리/패배 시 팡파레 및 효과음
+  - 긴장감을 더해주는 30초 턴 타이머
+- **🏆 전적 시스템**: AI와의 대결 승/패 기록 자동 저장 (Local Storage)
 
 ---
 
@@ -15,9 +23,12 @@
 
 | 구분 | 기술 스택 | 설명 |
 | :--- | :--- | :--- |
-| **코어 로직** | **TypeScript** | 게임판 상태 관리, 턴 제어, 승리 판정 로직 구현 (클래스 기반) |
-| **프론트엔드** | **React (with TypeScript)** | 사용자 인터페이스(UI) 구성 및 상태 관리 (Custom Hooks 사용) |
-| **프레임워크** | **Next.js** | **React 프레임워크 기반, 서버 사이드 렌더링(SSR) 및 파일 시스템 라우팅 제공** |
+| **프레임워크** | **Next.js 14** | React 기반의 풀스택 프레임워크 |
+| **언어** | **TypeScript** | 정적 타입을 통한 안정적인 코드 작성 |
+| **스타일링** | **Styled-components** | CSS-in-JS를 이용한 컴포넌트 스타일링 |
+| **상태 관리** | **React Hooks** | `useState`, `useCallback`, `useEffect` 활용 |
+| **오디오** | **Web Audio API** | 외부 파일 없이 브라우저 내장 API로 효과음 합성 |
+| **저장소** | **Local Storage** | 사용자 전적 데이터 영구 저장 |
 
 ---
 
@@ -26,20 +37,36 @@
 이 프로젝트는 Node.js와 npm을 사용하여 실행됩니다.
 
 1.  **프로젝트 클론 및 이동:**
+
     ```bash
     git clone https://github.com/parksuejin1026/LegendProject-2025.git
     cd LegendProject-2025
     ```
-    *(프로젝트 이름에 따라 경로를 확인하세요.)*
 
 2.  **의존성 설치:**
+
     ```bash
     npm install
     ```
-    (Next.js 및 기타 의존성 설치)
 
 3.  **개발 서버 실행:**
     ```bash
     npm run dev
     ```
-    (Next.js 개발 서버가 시작됩니다. 브라우저가 열리고 게임을 플레이할 수 있습니다.)
+    브라우저에서 `http://localhost:3000`으로 접속하여 게임을 즐기세요!
+
+---
+
+## 📁 프로젝트 구조
+
+```
+LegendProject-2025/
+├── src/
+│   ├── core/           # 게임 핵심 로직 (GomokuGame, AI, Sound, Storage)
+│   ├── components/     # UI 컴포넌트 (Board, Cell)
+│   ├── hooks/          # 커스텀 훅 (useGomokuGame)
+│   └── App.tsx         # 메인 앱 컴포넌트
+├── pages/              # Next.js 라우팅 (index, game)
+├── public/             # 정적 파일
+└── ...설정 파일들
+```

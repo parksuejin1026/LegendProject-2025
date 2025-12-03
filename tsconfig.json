@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2020",
-    "lib": [
-      "DOM",
-      "DOM.Iterable",
-      "ESNext"
-    ],
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
     "module": "ESNext",
     "skipLibCheck": true,
     /* Next.js Specific / Required */
@@ -35,7 +31,5 @@
     "**/*.tsx",
     ".next/types/**/*.ts" // Next.js가 생성하는 타입 정의 파일
   ],
-  "exclude": [
-    "node_modules"
-  ]
+  "exclude": ["node_modules"]
 }
