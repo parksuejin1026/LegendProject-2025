@@ -558,11 +558,37 @@ const App: React.FC = () => {
         {activeTab === 'game' ? (
           <SplitLayout>
             <GameSection>
-              <Header style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+              <Header style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '20px', position: 'relative', width: '100%' }}>
+                <button
+                  onClick={() => {
+                    setGameMode(GameMode.HvAI); // 기본 모드로
+                    setShowModeSelection(true);
+                  }}
+                  style={{
+                    position: 'absolute',
+                    left: 0,
+                    background: 'none',
+                    border: 'none',
+                    color: '#fff',
+                    fontSize: '1.5rem',
+                    cursor: 'pointer',
+                    opacity: 0.8,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}
+                  title="메인 메뉴로 나가기"
+                >
+                  ◀ <span style={{ fontSize: '1rem', fontWeight: 'bold' }}>MENU</span>
+                </button>
+
                 <Title>LEGEND GOMOKU</Title>
+
                 <button
                   onClick={toggleMute}
                   style={{
+                    position: 'absolute',
+                    right: 0,
                     background: 'none',
                     border: 'none',
                     cursor: 'pointer',
