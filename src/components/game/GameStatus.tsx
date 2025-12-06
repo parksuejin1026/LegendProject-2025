@@ -17,9 +17,9 @@ const StatusMessage = styled.div<{ $isGameOver: boolean; $gameState: GameState }
   background: rgba(255, 255, 255, 0.05);
   backdrop-filter: blur(5px);
   color: ${({ $isGameOver, $gameState }) => {
-        if (!$isGameOver) return '#e0e0e0';
-        return $gameState === GameState.HumanWin ? '#4caf50' : '#f44336';
-    }};
+    if (!$isGameOver) return '#e0e0e0';
+    return $gameState === GameState.HumanWin ? '#4caf50' : '#f44336';
+  }};
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
   animation: ${pulse} 0.5s ease-in-out;
@@ -72,106 +72,111 @@ const CircularTimer = styled.div<{ $percentage: number; $isUrgent: boolean }>`
   }
 `;
 
-const thinkingDots = keyframes`
-  0%, 20% { content: '.'; }
-  40% { content: '..'; }
-  60%, 100% { content: '...'; }
+const spin = keyframes`
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 `;
 
 const AIThinkingIndicator = styled.div`
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
   padding: 8px 16px;
-  background: rgba(33, 150, 243, 0.2);
+  background: rgba(33, 150, 243, 0.1);
   border-radius: 20px;
-  border: 1px solid rgba(33, 150, 243, 0.4);
-  font-size: 0.9rem;
+  border: 1px solid rgba(33, 150, 243, 0.3);
+  font-size: 0.95rem;
   color: #2196f3;
-  
-  &::after {
-    content: '...';
-    animation: ${thinkingDots} 1.5s infinite;
-    display: inline-block;
-    width: 20px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.15);
+
+  &::before {
+    content: '';
+    display: block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(33, 150, 243, 0.3);
+    border-top-color: #2196f3;
+    border-radius: 50%;
+    animation: ${spin} 1s linear infinite;
   }
 `;
 
 interface GameStatusProps {
-    gameState: GameState;
-    gameMode: GameMode;
-    currentPlayer: Player;
-    isGameOver: boolean;
-    isAIThinking: boolean;
-    timeLeft: number;
+  gameState: GameState;
+  gameMode: GameMode;
+  currentPlayer: Player;
+  isGameOver: boolean;
+  isAIThinking: boolean;
+  timeLeft: number;
 }
 
 const GameStatus: React.FC<GameStatusProps> = ({
-    gameState,
-    gameMode,
-    currentPlayer,
-    isGameOver,
-    isAIThinking,
-    timeLeft
+  gameState,
+  gameMode,
+  currentPlayer,
+  isGameOver,
+  isAIThinking,
+  timeLeft
 }) => {
 
-    const getStatusMessage = () => {
-        switch (gameState) {
-            case GameState.HumanWin:
-                return '🎉 당신의 승리입니다! (흑돌)';
-            case GameState.AIWin:
-                return '😭 AI의 승리입니다. (백돌)';
-            case GameState.Draw:
-                return '🤝 무승부입니다.';
-            case GameState.Playing:
-            default:
-                if (gameMode === GameMode.HvH) {
-                    return currentPlayer === Player.Human
-                        ? '▶️ 흑돌(Player 1)의 턴입니다'
-                        : '▶️ 백돌(Player 2)의 턴입니다';
-                }
-                return currentPlayer === Player.Human
-                    ? '▶️ 당신의 턴입니다 (흑돌)'
-                    : '💻 AI의 턴입니다 (백돌)';
+  const getStatusMessage = () => {
+    switch (gameState) {
+      case GameState.HumanWin:
+        return '🎉 당신의 승리입니다! (흑돌)';
+      case GameState.AIWin:
+        return '😭 AI의 승리입니다. (백돌)';
+      case GameState.Draw:
+        return '🤝 무승부입니다.';
+      case GameState.Playing:
+      default:
+        if (gameMode === GameMode.HvH) {
+          return currentPlayer === Player.Human
+            ? '▶️ 흑돌(Player 1)의 턴입니다'
+            : '▶️ 백돌(Player 2)의 턴입니다';
         }
-    };
+        return currentPlayer === Player.Human
+          ? '▶️ 당신의 턴입니다 (흑돌)'
+          : '💻 AI의 턴입니다 (백돌)';
+    }
+  };
 
-    return (
-        <StatusMessage
-            $isGameOver={isGameOver}
-            $gameState={gameState}
-            key={currentPlayer}
-        >
-            {getStatusMessage()}
-            {isAIThinking && gameMode === GameMode.HvAI && (
-                <div style={{ marginTop: '10px' }}>
-                    <AIThinkingIndicator>🤖 AI 사고 중</AIThinkingIndicator>
-                </div>
-            )}
-            {gameState === GameState.Playing && !isAIThinking && timeLeft >= 0 && (
-                <TimerContainer>
-                    <CircularTimer
-                        $percentage={(timeLeft / 30) * 100}
-                        $isUrgent={timeLeft < 10}
-                    >
-                        <svg width="60" height="60">
-                            <circle className="background" cx="30" cy="30" r="26" />
-                            <circle className="progress" cx="30" cy="30" r="26" />
-                        </svg>
-                        <div className="timer-text">{timeLeft}</div>
-                    </CircularTimer>
-                    <span
-                        style={{
-                            fontSize: '0.9em',
-                            color: timeLeft < 10 ? '#ff4444' : '#aaa',
-                        }}
-                    >
-                        {timeLeft < 10 ? '⚠️ 서두르세요!' : '남은 시간'}
-                    </span>
-                </TimerContainer>
-            )}
-        </StatusMessage>
-    );
+  return (
+    <StatusMessage
+      $isGameOver={isGameOver}
+      $gameState={gameState}
+      key={currentPlayer}
+    >
+      {getStatusMessage()}
+      {isAIThinking && gameMode === GameMode.HvAI && (
+        <div style={{ marginTop: '10px' }}>
+          <AIThinkingIndicator>🤖 AI 사고 중</AIThinkingIndicator>
+        </div>
+      )}
+      {gameState === GameState.Playing && !isAIThinking && timeLeft >= 0 && (
+        <TimerContainer>
+          <CircularTimer
+            $percentage={(timeLeft / 30) * 100}
+            $isUrgent={timeLeft < 10}
+          >
+            <svg width="60" height="60">
+              <circle className="background" cx="30" cy="30" r="26" />
+              <circle className="progress" cx="30" cy="30" r="26" />
+            </svg>
+            <div className="timer-text">{timeLeft}</div>
+          </CircularTimer>
+          <span
+            style={{
+              fontSize: '0.9em',
+              color: timeLeft < 10 ? '#ff4444' : '#aaa',
+            }}
+          >
+            {timeLeft < 10 ? '⚠️ 서두르세요!' : '남은 시간'}
+          </span>
+        </TimerContainer>
+      )}
+    </StatusMessage>
+  );
 };
 
 export default GameStatus;

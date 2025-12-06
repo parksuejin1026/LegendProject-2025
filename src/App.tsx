@@ -619,6 +619,7 @@ const App: React.FC = () => {
                   <Board
                     boardState={displayBoardState}
                     boardSize={boardSize}
+                    currentPlayer={currentPlayer} // 고스트 스톤 색상을 위해 추가
                     skin={currentSkin} // 스킨 전달
                     onCellClick={(r, c) => {
                       if (replayStep !== null) return;

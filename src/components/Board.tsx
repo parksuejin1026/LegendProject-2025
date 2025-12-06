@@ -23,6 +23,7 @@ interface BoardProps {
   winLine: { row: number; col: number }[] | null; // 승리 라인 좌표 배열
   heuristicMap: number[][] | null; // AI 평가 점수 맵
   checkForbidden: (row: number, col: number) => boolean; // 금지수 확인 함수
+  currentPlayer: Player; // 현재 플레이어 (고스트 스톤용)
   skin: StoneSkinType; // 스킨 prop 추가
   activeCursor?: { r: number; c: number } | null; // 키보드 커서
 }
@@ -127,6 +128,7 @@ const IntersectionPoint = styled.div<{ $row: number; $col: number; $size: number
   }}
 `;
 
+/*
 const drawLine = keyframes`
   from {
     stroke-dashoffset: 1000;
@@ -135,7 +137,9 @@ const drawLine = keyframes`
     stroke-dashoffset: 0;
   }
 `;
+*/
 
+/*
 const WinLineOverlay = styled.svg`
   position: absolute;
   top: 30px;
@@ -154,9 +158,9 @@ const WinLineOverlay = styled.svg`
     stroke-dasharray: 1000;
     stroke-dashoffset: 1000;
     animation: ${drawLine} 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-    filter: drop-shadow(0 0 10px ${({ theme }) => theme.highlightWin});
   }
 `;
+*/
 
 const Board: React.FC<BoardProps> = ({
   boardState,
@@ -167,6 +171,7 @@ const Board: React.FC<BoardProps> = ({
   winLine,
   heuristicMap,
   checkForbidden,
+  currentPlayer,
   skin,
   activeCursor,
 }) => {
@@ -214,6 +219,7 @@ const Board: React.FC<BoardProps> = ({
           <IntersectionPoint key={`${r}-${c}`} $row={r} $col={c} $size={boardSize}>
             <Cell
               value={cellValue}
+              currentPlayer={currentPlayer} // Cell에 현재 플레이어 전달
               onClick={() => {
                 onCellClick(r, c);
                 if (cellValue === Player.Empty && !isGameOver) {
@@ -239,7 +245,8 @@ const Board: React.FC<BoardProps> = ({
 
 
       {/* 승리 라인 애니메이션 */}
-      {winLine && winLine.length > 0 && (
+      {/* 승리 라인 애니메이션 제거 (사용자 요청) */}
+      {/* {winLine && winLine.length > 0 && (
         <WinLineOverlay viewBox={`0 0 ${boardSize - 1} ${boardSize - 1}`} preserveAspectRatio="none">
           <line
             x1={winLine[0].col}
@@ -248,7 +255,7 @@ const Board: React.FC<BoardProps> = ({
             y2={winLine[winLine.length - 1].row}
           />
         </WinLineOverlay>
-      )}
+      )} */}
     </BoardContainer>
   );
 };
