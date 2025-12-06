@@ -203,20 +203,7 @@ const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
           <button className="cta">AI 대전 시작</button>
         </ModeCard>
 
-        <ModeCard $color="#9c27b0" onClick={() => onSelectMode(GameMode.Online)}>
-          <span className="icon">🌐</span>
-          <div className="title">온라인 대전</div>
-          <div className="description">
-            전 세계의 플레이어와 실시간으로 대결하세요
-          </div>
-          <ul className="features">
-            <li>실시간 빠른 매칭</li>
-            <li>친구 대전 (방 만들기)</li>
-            <li>이모티콘 채팅</li>
-            <li>랭킹 시스템</li>
-          </ul>
-          <button className="cta">온라인 대전 시작</button>
-        </ModeCard>
+
 
         <ModeCard $color="#ff9800" onClick={() => onSelectMode(GameMode.Challenge)}>
           <span className="icon">🧩</span>

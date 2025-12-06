@@ -9,11 +9,10 @@
 
 import React from 'react';
 import { useGomokuGame } from './hooks/useGomokuGame';
-import { useSocket } from './hooks/useSocket'; // 소켓 훅 추가
 import Board from './components/Board';
 import { Player, GameState, GameMode } from './core/GomokuGame';
 import { StoneSkinType } from './styles/theme'; // 스킨 타입 추가
-import { PersonaType } from './core/AIPersona';
+
 import SoundManager from './core/SoundManager';
 import StorageManager from './core/StorageManager';
 import HistoryManager from './core/HistoryManager';
@@ -35,9 +34,8 @@ import EmoteChat from './components/EmoteChat';
 import GameStatus from './components/game/GameStatus'; // 리팩토링된 컴포넌트
 import GameControls from './components/game/GameControls'; // 리팩토링된 컴포넌트
 import ReplayControl from './components/game/ReplayControl'; // 복기 컨트롤 추가
-import Lobby from './components/Lobby'; // 로비 추가
 import ChallengeSelector from './components/ChallengeSelector'; // 챌린지 선택 추가
-import { AchievementManager, Achievement } from './core/AchievementManager'; // 업적 매니저 추가
+import './core/AchievementManager'; // 업적 매니저 추가 (side-effect import if needed, otherwise remove)
 import CustomThemeCreator from './components/CustomThemeCreator'; // 커스텀 테마 추가
 // --- 스타일된 컴포넌트 ---
 
@@ -117,19 +115,7 @@ const Header = styled.header`
   margin-bottom: 30px;
 `;
 
-const shake = keyframes`
-  0% { transform: translate(1px, 1px) rotate(0deg); }
-  10% { transform: translate(-1px, -2px) rotate(-1deg); }
-  20% { transform: translate(-3px, 0px) rotate(1deg); }
-  30% { transform: translate(3px, 2px) rotate(0deg); }
-  40% { transform: translate(1px, -1px) rotate(1deg); }
-  50% { transform: translate(-1px, 2px) rotate(-1deg); }
-  60% { transform: translate(-3px, 1px) rotate(0deg); }
-  70% { transform: translate(3px, 1px) rotate(-1deg); }
-  80% { transform: translate(-1px, -1px) rotate(1deg); }
-  90% { transform: translate(1px, 2px) rotate(0deg); }
-  100% { transform: translate(1px, -2px) rotate(-1deg); }
-`;
+
 
 const shimmer = keyframes`
   0% { background-position: -200% center; }
@@ -195,10 +181,6 @@ const App: React.FC = () => {
     setBoardSize, // 보드 크기 변경
   } = useGomokuGame(); // 커스텀 훅을 통해 게임 로직 사용
 
-  const { socket } = useSocket(); // 소켓 연결
-  const [onlineRoomId, setOnlineRoomId] = React.useState<string | null>(null);
-  const [onlineRole, setOnlineRole] = React.useState<'host' | 'guest' | null>(null);
-
   const [currentTheme, setCurrentTheme] = React.useState('modern');
   const [customThemes, setCustomThemes] = React.useState<Theme[]>([]);
   const [showThemeCreator, setShowThemeCreator] = React.useState(false);
@@ -209,7 +191,7 @@ const App: React.FC = () => {
     if (saved) {
       try {
         setCustomThemes(JSON.parse(saved));
-      } catch (e) { }
+      } catch { }
     }
   }, []);
 
@@ -246,21 +228,16 @@ const App: React.FC = () => {
   // ...
 
   const [keyboardCursor, setKeyboardCursor] = React.useState<{ r: number, c: number } | null>(null);
-  const [recentAchievement, setRecentAchievement] = React.useState<Achievement | null>(null);
+
 
   const handleSendEmote = (emote: string) => {
     // 현재는 로컬에서만 동작 (내가 보낸 이모티콘을 나도 받음)
-    // 추후 Socket 통신 시 상대에게 전송하는 로직 추가
     setReceivedEmote(emote);
     setTimeout(() => setReceivedEmote(null), 2000);
-
-    // 소켓 전송
-    if (gameMode === GameMode.Online && onlineRoomId && socket) {
-      socket.emit('send-emote', { roomId: onlineRoomId, emote });
-    }
   };
 
   // Auth State
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [user, setUser] = React.useState<any>(null);
   const [showLoginModal, setShowLoginModal] = React.useState(false);
 
@@ -283,6 +260,7 @@ const App: React.FC = () => {
     setShowModeSelection(true);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handleLoginSuccess = (loggedInUser: any) => {
     setUser(loggedInUser);
     setShowLanding(false);
@@ -363,6 +341,7 @@ const App: React.FC = () => {
           mode: gameMode === GameMode.HvAI ? 'HvAI' : 'HvH',
           result: gameState === GameState.HumanWin ? 'win' : 'lose',
           moves: moveCount,
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
           difficulty: gameMode === GameMode.HvAI ? difficulty.toString() as any : undefined
         });
       } else {
@@ -395,67 +374,7 @@ const App: React.FC = () => {
     }
   }, [gameState, gameMode, user, moveCount, difficulty]);
 
-  // 소켓 이벤트 핸들링
-  React.useEffect(() => {
-    if (!socket) return;
 
-    socket.on('room-joined', (data: { roomId: string, role: 'host' | 'guest' }) => {
-      setOnlineRoomId(data.roomId);
-      setOnlineRole(data.role);
-      setGameMode(GameMode.Online);
-      restartGame(); // 게임 초기화
-      console.log(`Joined room ${data.roomId} as ${data.role}`);
-    });
-
-    socket.on('receive-move', (data: { row: number, col: number }) => {
-      handleMove(data.row, data.col);
-    });
-
-    socket.on('game-over', (data: { result: string }) => {
-      // 상대방이 나감, 혹은 서버 판정 승패 처리
-      // 간단하게 처리
-    });
-
-    socket.on('receive-emote', (emote: string) => {
-      setReceivedEmote(emote);
-      setTimeout(() => setReceivedEmote(null), 2000);
-    });
-
-    return () => {
-      socket.off('room-joined');
-      socket.off('receive-move');
-      socket.off('game-over');
-      socket.off('receive-emote');
-    };
-  }, [socket, handleMove, restartGame, setGameMode]);
-
-  const handleOnlineMove = (row: number, col: number) => {
-    if (gameMode === GameMode.Online) {
-      // 내 턴인지 확인
-      const isMyTurn = (onlineRole === 'host' && currentPlayer === Player.Human) ||
-        (onlineRole === 'guest' && currentPlayer === Player.AI); // 여기서는 AI Player를 상대방(Guest)의 수로 간주해야 함... 
-      // 앗, GomokuGame 로직상 Player.Human=1, Player.AI=2.
-      // 온라인 모드에서는:
-      // Host(흑) = Player.Human이 흑.
-      // Guest(백) = Player.Human이 백?
-      // 로직 수정이 필요함. 현재 GomokuGame은 Client-side logic만 있음.
-      // 온라인에서는 "내가 흑인가 백인가"를 알아야 함.
-      // 일단 Host=흑(Player.Human), Guest=백(Player.AI로 처리하거나... 헷갈림)
-
-      // 간단 구현:
-      // Player 1(Human) = 흑, Player 2(AI/Opponent) = 백.
-      // Host: 내가 Player 1.
-      // Guest: 내가 Player 2.
-
-      const myPlayer = onlineRole === 'host' ? Player.Human : Player.AI;
-      if (currentPlayer !== myPlayer) return; // 내 턴 아님
-
-      if (socket && onlineRoomId) {
-        socket.emit('make-move', { roomId: onlineRoomId, row, col, player: myPlayer });
-      }
-    }
-    handleMove(row, col);
-  };
 
   // 게임 종료 여부 확인 (승리 또는 무승부)
   const isGameOver = gameState !== GameState.Playing;
@@ -485,7 +404,7 @@ const App: React.FC = () => {
     : lastMove;
 
   // 타이머 (Blitz 모드: 각자 3분 = 180초)
-  const [isBlitz, setIsBlitz] = React.useState(false);
+  const [isBlitz] = React.useState(false);
   const [blackTime, setBlackTime] = React.useState(180);
   const [whiteTime, setWhiteTime] = React.useState(180);
   const [gameStarted, setGameStarted] = React.useState(false);
@@ -523,7 +442,7 @@ const App: React.FC = () => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [currentPlayer, gameState, gameStarted, isBlitz]);
+  }, [currentPlayer, gameState, gameStarted, isBlitz, restartGame]);
 
   // 게임 재시작 시 시간 초기화
   React.useEffect(() => {
@@ -593,7 +512,7 @@ const App: React.FC = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isGameOver, currentPlayer, restartGame, undoMove]);
+  }, [isGameOver, currentPlayer, restartGame, undoMove, boardSize, handleMove, keyboardCursor]);
 
   if (showLanding) {
     return (
@@ -658,21 +577,7 @@ const App: React.FC = () => {
                 </button>
               </Header>
 
-              {gameMode === GameMode.Online && !onlineRoomId ? (
-                <Lobby
-                  isConnected={!!socket} // 소켓 객체 존재 여부로 연결 판별 (엄밀히는 connected 속성이지만 useSocket 훅 개선 필요)
-                  onJoinRoom={(roomId) => {
-                    if (socket) socket.emit('join-room', roomId);
-                  }}
-                  onQuickMatch={() => {
-                    if (socket) socket.emit('quick-match');
-                  }}
-                  onBack={() => {
-                    setGameMode(GameMode.HvAI); // 기본 모드로 리셋
-                    setShowModeSelection(true); // 모드 선택 화면으로
-                  }}
-                />
-              ) : gameMode === GameMode.Challenge && moveCount === 0 && !isGameOver ? (
+              {gameMode === GameMode.Challenge && moveCount === 0 && !isGameOver ? (
                 <ChallengeSelector
                   onSelectChallenge={(challenge) => {
                     startChallenge(challenge.initialStones);
@@ -685,23 +590,15 @@ const App: React.FC = () => {
                 />
               ) : (
                 <>
-                  {gameMode === GameMode.Online && onlineRoomId && (
-                    <div style={{ marginBottom: '10px', color: '#00ff00' }}>
-                      ROOM: {onlineRoomId} ({onlineRole === 'host' ? '흑돌 ⚫' : '백돌 ⚪'})
-                    </div>
-                  )}
                   <Board
                     boardState={displayBoardState}
                     boardSize={boardSize}
                     skin={currentSkin} // 스킨 전달
                     onCellClick={(r, c) => {
                       if (replayStep !== null) return;
-                      if (gameMode === GameMode.Online) {
-                        handleOnlineMove(r, c);
-                      } else {
-                        if (!gameStarted) setGameStarted(true);
-                        handleMove(r, c);
-                      }
+                      // Online Mode logic removed
+                      if (!gameStarted) setGameStarted(true);
+                      handleMove(r, c);
                       setMoveCount((prev) => prev + 1);
                     }}
                     isGameOver={isGameOver}
@@ -754,6 +651,7 @@ const App: React.FC = () => {
                 currentPlayer={currentPlayer}
                 isGameOver={isGameOver}
                 isAIThinking={isAIThinking}
+                timeLeft={isBlitz ? (currentPlayer === Player.Human ? blackTime : whiteTime) : -1}
               />
               {isBlitz && (
                 <div style={{

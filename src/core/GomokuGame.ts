@@ -130,12 +130,7 @@ export class GomokuGame {
 
   public setHandicap(count: number): void {
     this.initializeBoard();
-    // 화점 위치 정의 (15x15 기준)
-    // 19x19, 9x9 등은 추후 확장
-    const starPoints = [
-      { r: 7, c: 7 }, // 천원
-      { r: 3, c: 3 }, { r: 3, c: 11 }, { r: 11, c: 3 }, { r: 11, c: 11 }
-    ];
+
 
     const center = Math.floor(this.BOARD_SIZE / 2);
     if (count === 1) {
@@ -356,14 +351,9 @@ export class GomokuGame {
       return aiWinMove;
     }
 
-    if (aiWinMove) {
-      this.makeMove(aiWinMove.row, aiWinMove.col);
-      return aiWinMove;
-    }
 
     // 2. 상대방의 승리 방어
     // 상대 플레이어 결정
-    const opponent = this.currentPlayer === Player.Human ? Player.AI : Player.Human;
     // 주의: AIvsAI 모드에서는 둘 다 시스템상 'Player.Human', 'Player.AI' enum 값을 번갈아 쓰지만
     // 로직상 currentPlayer가 두는 주체. opponent는 반대.
     // GomokuGame에서는 currentPlayer가 1, 2로 바뀌므로 그냥 반대값 찾으면 됨.
@@ -421,7 +411,7 @@ export class GomokuGame {
     let bestMove = null;
     let maxEval = -Infinity;
     let alpha = -Infinity;
-    let beta = Infinity;
+    const beta = Infinity;
 
     for (const move of candidates) {
       this.board[move.row][move.col] = Player.AI;
