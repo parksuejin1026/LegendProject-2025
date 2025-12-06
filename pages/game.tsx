@@ -1,4 +1,7 @@
-// pages/game.tsx
+/** @jsxRuntime classic */
+/** @jsxImportSource react */
+/* eslint-disable */
+
 /**
  * 게임 페이지
  *

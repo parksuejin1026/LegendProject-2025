@@ -15,6 +15,10 @@ const NavContainer = styled.nav`
   align-items: center;
   z-index: 1000;
   box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.3);
+
+  @media (min-width: 769px) {
+    display: none;
+  }
 `;
 
 const NavItem = styled.button<{ $active: boolean; theme: Theme }>`
@@ -46,27 +50,27 @@ const Label = styled.span`
 `;
 
 interface BottomNavigationProps {
-    activeTab: 'game' | 'rank' | 'profile';
-    onTabChange: (tab: 'game' | 'rank' | 'profile') => void;
+  activeTab: 'game' | 'rank' | 'profile';
+  onTabChange: (tab: 'game' | 'rank' | 'profile') => void;
 }
 
 const BottomNavigation: React.FC<BottomNavigationProps> = ({ activeTab, onTabChange }) => {
-    return (
-        <NavContainer>
-            <NavItem $active={activeTab === 'game'} onClick={() => onTabChange('game')}>
-                <Icon>🎮</Icon>
-                <Label>게임</Label>
-            </NavItem>
-            <NavItem $active={activeTab === 'rank'} onClick={() => onTabChange('rank')}>
-                <Icon>🏆</Icon>
-                <Label>랭킹</Label>
-            </NavItem>
-            <NavItem $active={activeTab === 'profile'} onClick={() => onTabChange('profile')}>
-                <Icon>👤</Icon>
-                <Label>마이</Label>
-            </NavItem>
-        </NavContainer>
-    );
+  return (
+    <NavContainer>
+      <NavItem $active={activeTab === 'game'} onClick={() => onTabChange('game')}>
+        <Icon>🎮</Icon>
+        <Label>게임</Label>
+      </NavItem>
+      <NavItem $active={activeTab === 'rank'} onClick={() => onTabChange('rank')}>
+        <Icon>🏆</Icon>
+        <Label>랭킹</Label>
+      </NavItem>
+      <NavItem $active={activeTab === 'profile'} onClick={() => onTabChange('profile')}>
+        <Icon>👤</Icon>
+        <Label>마이</Label>
+      </NavItem>
+    </NavContainer>
+  );
 };
 
 export default BottomNavigation;

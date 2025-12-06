@@ -11,8 +11,17 @@ import { AppProps } from 'next/app';
 // 전역 스타일 파일 import
 import '../styles/globals.css';
 
+import Head from 'next/head';
+
 function CustomApp({ Component, pageProps }: AppProps) {
-  return <Component {...pageProps} />;
+  return (
+    <>
+      <Head>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+      </Head>
+      <Component {...pageProps} />
+    </>
+  );
 }
 
 export default CustomApp;

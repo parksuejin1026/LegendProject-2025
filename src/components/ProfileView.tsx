@@ -203,6 +203,7 @@ const LogoutButton = styled.button`
 `;
 
 interface ProfileViewProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   user: any;
   stats: { wins: number; losses: number; draws: number };
   currentTheme: string;
@@ -251,9 +252,11 @@ const ProfileView: React.FC<ProfileViewProps> = ({
     SoundManager.setVolume(newVol / 100);
   };
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const [deferredPrompt, setDeferredPrompt] = React.useState<any>(null);
 
   React.useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleBeforeInstallPrompt = (e: any) => {
       e.preventDefault();
       setDeferredPrompt(e);
@@ -265,6 +268,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   const handleInstallClick = () => {
     if (deferredPrompt) {
       deferredPrompt.prompt();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       deferredPrompt.userChoice.then((choiceResult: any) => {
         if (choiceResult.outcome === 'accepted') {
           console.log('User accepted the install prompt');
@@ -293,6 +297,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
           <p style={{ margin: '0 0 15px 0', fontSize: '0.9rem', opacity: 0.9 }}>더 빠르고 쾌적하게 즐겨보세요!</p>
           <ThemeButton
             $active={true}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             theme={{ highlightWin: 'white' } as any}
             onClick={handleInstallClick}
             style={{ color: '#333', fontWeight: 'bold', padding: '10px 20px', fontSize: '1rem' }}
@@ -355,6 +360,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
               {onCreateTheme && (
                 <ThemeButton
                   $active={false}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
                   theme={{ highlightWin: '#aaa' } as any} // Placeholder theme struct
                   onClick={onCreateTheme}
                   style={{ border: '1px dashed #aaa', color: '#aaa' }}

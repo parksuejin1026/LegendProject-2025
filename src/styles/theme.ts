@@ -16,6 +16,38 @@ export interface Theme {
     boardShadow: string;
 }
 
+export type StoneSkinType = 'standard' | 'gem' | 'cat';
+
+export interface StoneSkinStyle {
+    name: string;
+    black: string; // CSS background or gradient
+    white: string; // CSS background or gradient
+    shadow: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    component?: (props: any) => JSX.Element; // For complex SVG skins
+}
+
+export const stoneSkins: Record<StoneSkinType, StoneSkinStyle> = {
+    standard: {
+        name: '기본 (Standard)',
+        black: 'radial-gradient(circle at 30% 30%, #666, #000)',
+        white: 'radial-gradient(circle at 30% 30%, #fff, #e0e0e0)',
+        shadow: '2px 2px 4px rgba(0, 0, 0, 0.5), inset -2px -2px 4px rgba(0,0,0,0.2)'
+    },
+    gem: {
+        name: '보석 (Gem)',
+        black: 'radial-gradient(circle at 30% 30%, #444, #1a1a1a, #000)', // 오닉스 느낌
+        white: 'radial-gradient(circle at 30% 30%, #fff, #e6e6fa, #b0c4de)', // 다이아몬드 느낌
+        shadow: '0 0 8px rgba(255, 255, 255, 0.3), inset -2px -2px 6px rgba(0,0,0,0.4)'
+    },
+    cat: {
+        name: '냥냥이 (Cat)',
+        black: '#333', // 흑냥이 (SVG로 처리 예정)
+        white: '#fff', // 백냥이 (SVG로 처리 예정)
+        shadow: '2px 2px 3px rgba(0,0,0,0.3)'
+    }
+};
+
 export const themes: Record<string, Theme> = {
     modern: {
         name: 'Modern Dark',
@@ -36,7 +68,7 @@ export const themes: Record<string, Theme> = {
     },
     classic: {
         name: 'Classic Wood',
-        background: 'linear-gradient(135deg, #8b4513 0%, #5d4037 100%)',
+        background: 'linear-gradient(135deg, #4a3b32 0%, #2c241b 100%)', // 붉은기 제거, 차분한 나무색
         boardBackground: '#e6b87d', // 나무 색상
         boardBorder: '#5d4037',
         gridLine: '#5d4037',

@@ -86,83 +86,85 @@ const ErrorMessage = styled.p`
 `;
 
 interface LoginModalProps {
-    onClose: () => void;
-    onLoginSuccess: (user: any) => void;
+  onClose: () => void;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  onLoginSuccess: (user: any) => void;
 }
 
 const LoginModal: React.FC<LoginModalProps> = ({ onClose, onLoginSuccess }) => {
-    const [isLogin, setIsLogin] = useState(true);
-    const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [loading, setLoading] = useState(false);
+  const [isLogin, setIsLogin] = useState(true);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        setError('');
-        setLoading(true);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError('');
+    setLoading(true);
 
-        const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
+    const endpoint = isLogin ? '/api/auth/login' : '/api/auth/signup';
 
-        try {
-            const res = await fetch(endpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username, password }),
-            });
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
 
-            const data = await res.json();
+      const data = await res.json();
 
-            if (!res.ok) {
-                throw new Error(data.message || 'Something went wrong');
-            }
+      if (!res.ok) {
+        throw new Error(data.message || 'Something went wrong');
+      }
 
-            if (isLogin) {
-                onLoginSuccess(data.user);
-                onClose();
-            } else {
-                // 회원가입 성공 시 바로 로그인 처리하거나 로그인 화면으로 전환
-                setIsLogin(true);
-                setError('회원가입 성공! 로그인해주세요.');
-                setPassword('');
-            }
-        } catch (err: any) {
-            setError(err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
+      if (isLogin) {
+        onLoginSuccess(data.user);
+        onClose();
+      } else {
+        // 회원가입 성공 시 바로 로그인 처리하거나 로그인 화면으로 전환
+        setIsLogin(true);
+        setError('회원가입 성공! 로그인해주세요.');
+        setPassword('');
+      }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <Overlay onClick={onClose}>
-            <ModalContainer onClick={(e) => e.stopPropagation()}>
-                <Title>{isLogin ? '로그인' : '회원가입'}</Title>
-                {error && <ErrorMessage>{error}</ErrorMessage>}
-                <form onSubmit={handleSubmit}>
-                    <Input
-                        type="text"
-                        placeholder="아이디"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        required
-                    />
-                    <Input
-                        type="password"
-                        placeholder="비밀번호"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        required
-                    />
-                    <Button type="submit" disabled={loading}>
-                        {loading ? '처리 중...' : isLogin ? '로그인' : '가입하기'}
-                    </Button>
-                </form>
-                <ToggleText onClick={() => { setIsLogin(!isLogin); setError(''); }}>
-                    {isLogin ? '계정이 없으신가요? 회원가입' : '이미 계정이 있으신가요? 로그인'}
-                </ToggleText>
-            </ModalContainer>
-        </Overlay>
-    );
+  return (
+    <Overlay onClick={onClose}>
+      <ModalContainer onClick={(e) => e.stopPropagation()}>
+        <Title>{isLogin ? '로그인' : '회원가입'}</Title>
+        {error && <ErrorMessage>{error}</ErrorMessage>}
+        <form onSubmit={handleSubmit}>
+          <Input
+            type="text"
+            placeholder="아이디"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <Input
+            type="password"
+            placeholder="비밀번호"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <Button type="submit" disabled={loading}>
+            {loading ? '처리 중...' : isLogin ? '로그인' : '가입하기'}
+          </Button>
+        </form>
+        <ToggleText onClick={() => { setIsLogin(!isLogin); setError(''); }}>
+          {isLogin ? '계정이 없으신가요? 회원가입' : '이미 계정이 있으신가요? 로그인'}
+        </ToggleText>
+      </ModalContainer>
+    </Overlay>
+  );
 };
 
 export default LoginModal;

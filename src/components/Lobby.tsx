@@ -41,17 +41,22 @@ const Button = styled.button`
 
 interface LobbyProps {
   onJoinRoom: (roomId: string, role: 'host' | 'guest') => void;
+  onQuickMatch: () => void;
+  onBack: () => void;
+  isConnected: boolean; // 연결 상태 추가
 }
 
-const Lobby: React.FC<LobbyProps> = ({ onJoinRoom }) => {
+const Lobby: React.FC<LobbyProps> = ({ onJoinRoom, onQuickMatch, onBack, isConnected }) => {
   const [roomId, setRoomId] = useState('');
 
   const handleCreateRoom = () => {
+    if (!isConnected) return;
     const newRoomId = Math.random().toString(36).substring(2, 8).toUpperCase();
     onJoinRoom(newRoomId, 'host');
   };
 
   const handleJoinRoom = () => {
+    if (!isConnected) return;
     if (roomId.trim()) {
       onJoinRoom(roomId.toUpperCase(), 'guest');
     }
@@ -60,6 +65,28 @@ const Lobby: React.FC<LobbyProps> = ({ onJoinRoom }) => {
   return (
     <LobbyContainer>
       <Title>🌐 온라인 대기실</Title>
+      {!isConnected && (
+        <div style={{ color: '#ff4444', marginBottom: '15px', fontWeight: 'bold' }}>
+          서버 연결 중입니다... (잠시만 기다려주세요)
+        </div>
+      )}
+      <div style={{ marginBottom: '20px' }}>
+        <Button
+          onClick={onQuickMatch}
+          disabled={!isConnected}
+          style={{
+            width: '100%',
+            marginBottom: '10px',
+            background: isConnected ? 'linear-gradient(45deg, #ff00cc, #3333ff)' : '#555',
+            fontSize: '1.2rem',
+            fontWeight: 'bold',
+            cursor: isConnected ? 'pointer' : 'not-allowed',
+            opacity: isConnected ? 1 : 0.5
+          }}
+        >
+          ⚡ 빠른 대전 (Quick Match)
+        </Button>
+      </div>
       <div style={{ marginBottom: '20px' }}>
         <p style={{ marginBottom: '10px' }}>새로운 방을 만들고 친구를 초대하세요!</p>
         <Button onClick={handleCreateRoom}>방 만들기</Button>
@@ -75,6 +102,18 @@ const Lobby: React.FC<LobbyProps> = ({ onJoinRoom }) => {
         />
         <Button onClick={handleJoinRoom}>참가하기</Button>
       </div>
+      <hr style={{ borderColor: 'rgba(255,255,255,0.1)', margin: '20px 0' }} />
+      <Button
+        onClick={onBack}
+        style={{
+          background: 'transparent',
+          border: '1px solid #666',
+          color: '#aaa',
+          width: '100%'
+        }}
+      >
+        이전으로
+      </Button>
     </LobbyContainer>
   );
 };

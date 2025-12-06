@@ -8,7 +8,7 @@
 import React from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { Player } from '../core/GomokuGame';
-import { Theme } from '../styles/theme';
+import { Theme, StoneSkinType, stoneSkins } from '../styles/theme';
 
 // --- Styled Components 정의 ---
 
@@ -25,15 +25,15 @@ const pulse = keyframes`
 
 const dropIn = keyframes`
   0% {
-    transform: translate(-50%, -200%) scale(0.3);
+    transform: translate(-50%, -50%) scale(1.5);
     opacity: 0;
   }
-  60% {
-    transform: translate(-50%, -50%) scale(1.1);
+  50% {
+    transform: translate(-50%, -50%) scale(0.9);
     opacity: 1;
   }
-  80% {
-    transform: translate(-50%, -50%) scale(0.95);
+  75% {
+    transform: translate(-50%, -50%) scale(1.1);
   }
   100% {
     transform: translate(-50%, -50%) scale(1);
@@ -76,6 +76,7 @@ const Stone = styled.div<{
   $player: Player;
   $isOnWinLine: boolean;
   $isLastMove: boolean;
+  $skin: StoneSkinType;
   theme: Theme;
 }>`
   position: absolute;
@@ -89,21 +90,23 @@ const Stone = styled.div<{
   animation: ${dropIn} 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   border: 1px solid ${({ $player }) => ($player === Player.Human ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)')};
 
-  background: ${({ $player, theme }) =>
-    $player === Player.Human
-      ? `radial-gradient(circle at 30% 30%, #666, ${theme.stoneBlack})`
-      : $player === Player.AI
-        ? `radial-gradient(circle at 30% 30%, #fff, ${theme.stoneWhite})`
-        : 'transparent'};
+  background: ${({ $player, $skin }) => {
+    if ($player === Player.Empty) return 'transparent';
+    const skin = stoneSkins[$skin];
+    return $player === Player.Human ? skin.black : skin.white;
+  }};
 
-  box-shadow: ${({ $player }) =>
-    $player === Player.Empty ? 'none' : '2px 2px 4px rgba(0, 0, 0, 0.5), inset -2px -2px 4px rgba(0,0,0,0.2)'};
+  box-shadow: ${({ $player, $skin }) => {
+    if ($player === Player.Empty) return 'none';
+    return stoneSkins[$skin].shadow;
+  }};
 
   ${({ $isOnWinLine }) =>
     $isOnWinLine &&
     css`
-      animation: ${pulse} 1.5s infinite ease-in-out;
-      filter: brightness(1.3);
+      animation: ${pulse} 1s infinite ease-in-out alternate;
+      filter: brightness(1.5) drop-shadow(0 0 5px ${({ theme }) => theme.highlightWin});
+      z-index: 15;
     `}
 
   ${({ $isOnWinLine, $isLastMove }) =>
@@ -138,6 +141,7 @@ interface CellProps {
   isHovered?: boolean;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  skin?: StoneSkinType;
 }
 
 const Cell: React.FC<CellProps> = ({
@@ -151,6 +155,7 @@ const Cell: React.FC<CellProps> = ({
   isHovered,
   onMouseEnter,
   onMouseLeave,
+  skin = 'standard',
 }) => {
   const isClickable = !isGameOver && value === Player.Empty;
   const [isForbidden, setIsForbidden] = React.useState(false);
@@ -204,7 +209,7 @@ const Cell: React.FC<CellProps> = ({
       )}
       {value !== Player.Empty && (
         <>
-          <Stone $player={value} $isOnWinLine={isOnWinLine} $isLastMove={isLastMove} />
+          <Stone $player={value} $isOnWinLine={isOnWinLine} $isLastMove={isLastMove} $skin={skin} />
           {isLastMove && !isGameOver && <RippleEffect $player={value} />}
         </>
       )}
@@ -216,6 +221,7 @@ const Cell: React.FC<CellProps> = ({
           // 일단 투명도만 줘서 표시.
           $isOnWinLine={false}
           $isLastMove={false}
+          $skin={skin}
           style={{ opacity: 0.5, transform: 'translate(-50%, -50%) scale(0.9)' }}
         />
       )}

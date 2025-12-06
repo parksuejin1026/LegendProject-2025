@@ -1,13 +1,15 @@
 // src/components/GameResultModal.tsx
 import React from 'react';
 import styled, { keyframes } from 'styled-components';
-import { GameState } from '../core/GomokuGame';
+import { GameState, GameMode } from '../core/GomokuGame';
 
 interface GameResultModalProps {
-    gameState: GameState;
-    moveCount: number;
-    onRestart: () => void;
-    onMenu: () => void;
+  gameState: GameState;
+  gameMode: GameMode;
+  moveCount: number;
+  onRestart: () => void;
+  onMenu: () => void;
+  onReplay?: () => void;
 }
 
 const fadeIn = keyframes`
@@ -48,15 +50,15 @@ const Overlay = styled.div`
 const ModalContainer = styled.div<{ $result: 'win' | 'lose' | 'draw' }>`
   background: linear-gradient(135deg, 
     ${({ $result }) =>
-        $result === 'win' ? '#4caf5033, #4caf5011' :
-            $result === 'lose' ? '#f4433633, #f4433611' :
-                '#ff980033, #ff980011'
-    });
+    $result === 'win' ? '#4caf5033, #4caf5011' :
+      $result === 'lose' ? '#f4433633, #f4433611' :
+        '#ff980033, #ff980011'
+  });
   border: 2px solid ${({ $result }) =>
-        $result === 'win' ? '#4caf50' :
-            $result === 'lose' ? '#f44336' :
-                '#ff9800'
-    };
+    $result === 'win' ? '#4caf50' :
+      $result === 'lose' ? '#f44336' :
+        '#ff9800'
+  };
   border-radius: 24px;
   padding: 48px;
   max-width: 500px;
@@ -81,10 +83,10 @@ const ResultTitle = styled.h2<{ $result: 'win' | 'lose' | 'draw' }>`
   font-weight: 800;
   margin-bottom: 16px;
   color: ${({ $result }) =>
-        $result === 'win' ? '#4caf50' :
-            $result === 'lose' ? '#f44336' :
-                '#ff9800'
-    };
+    $result === 'win' ? '#4caf50' :
+      $result === 'lose' ? '#f44336' :
+        '#ff9800'
+  };
   text-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
   
   @media (max-width: 768px) {
@@ -151,73 +153,79 @@ const ModalButton = styled.button<{ $primary?: boolean }>`
 `;
 
 const GameResultModal: React.FC<GameResultModalProps> = ({
-    gameState,
-    moveCount,
-    onRestart,
-    onMenu,
+  gameState,
+  moveCount,
+  onRestart,
+  onMenu,
+  onReplay,
 }) => {
-    const getResultData = () => {
-        switch (gameState) {
-            case GameState.HumanWin:
-                return {
-                    type: 'win' as const,
-                    icon: '🎉',
-                    title: '승리!',
-                    message: '축하합니다!'
-                };
-            case GameState.AIWin:
-                return {
-                    type: 'lose' as const,
-                    icon: '😢',
-                    title: '패배',
-                    message: '다음엔 더 잘할 수 있어요!'
-                };
-            case GameState.Draw:
-                return {
-                    type: 'draw' as const,
-                    icon: '🤝',
-                    title: '무승부',
-                    message: '팽팽한 대결이었습니다!'
-                };
-            default:
-                return {
-                    type: 'draw' as const,
-                    icon: '🎮',
-                    title: '게임 종료',
-                    message: ''
-                };
-        }
-    };
+  const getResultData = () => {
+    switch (gameState) {
+      case GameState.HumanWin:
+        return {
+          type: 'win' as const,
+          icon: '🎉',
+          title: '승리!',
+          message: '축하합니다!'
+        };
+      case GameState.AIWin:
+        return {
+          type: 'lose' as const,
+          icon: '😢',
+          title: '패배',
+          message: '다음엔 더 잘할 수 있어요!'
+        };
+      case GameState.Draw:
+        return {
+          type: 'draw' as const,
+          icon: '🤝',
+          title: '무승부',
+          message: '팽팽한 대결이었습니다!'
+        };
+      default:
+        return {
+          type: 'draw' as const,
+          icon: '🎮',
+          title: '게임 종료',
+          message: ''
+        };
+    }
+  };
 
-    const result = getResultData();
+  const result = getResultData();
 
-    return (
-        <Overlay onClick={(e) => e.target === e.currentTarget && onMenu()}>
-            <ModalContainer $result={result.type}>
-                <ResultIcon>{result.icon}</ResultIcon>
-                <ResultTitle $result={result.type}>{result.title}</ResultTitle>
-                <p style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.8)', marginBottom: '8px' }}>
-                    {result.message}
-                </p>
+  return (
+    <Overlay onClick={(e) => e.target === e.currentTarget && onMenu()}>
+      <ModalContainer $result={result.type}>
+        <ResultIcon>{result.icon}</ResultIcon>
+        <ResultTitle $result={result.type}>{result.title}</ResultTitle>
+        <p style={{ fontSize: '1.1rem', color: 'rgba(255,255,255,0.8)', marginBottom: '8px' }}>
+          {result.message}
+        </p>
 
-                <Stats>
-                    <StatItem>
-                        <div className="label">총 수</div>
-                        <div className="value">{moveCount}</div>
-                    </StatItem>
-                </Stats>
+        <Stats>
+          <StatItem>
+            <div className="label">총 수</div>
+            <div className="value">{moveCount}</div>
+          </StatItem>
+        </Stats>
 
-                <ButtonGroup>
-                    <ModalButton $primary onClick={onRestart}>
-                        🔄 다시 하기
-                    </ModalButton>
-                    <ModalButton onClick={onMenu}>
-                        🏠 메뉴로
-                    </ModalButton>
-                </ButtonGroup>
-            </ModalContainer>
-        </Overlay>
-    );
+        <ButtonGroup>
+          <ModalButton $primary onClick={onRestart}>
+            🔄 다시 하기
+          </ModalButton>
+          <ModalButton onClick={onMenu}>
+            🏠 메뉴로
+          </ModalButton>
+          {onReplay && (
+            <ModalButton onClick={onReplay} style={{ background: 'linear-gradient(135deg, #9c27b0, #7b1fa2)' }}>
+              🎞 복기 하기
+            </ModalButton>
+          )}
+        </ButtonGroup>
+      </ModalContainer>
+    </Overlay>
+  );
 };
 
 export default GameResultModal;
