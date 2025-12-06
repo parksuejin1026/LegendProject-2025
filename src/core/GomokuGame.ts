@@ -21,7 +21,8 @@ export enum GameState {
 export enum GameMode {
   HvAI = 'HvAI', // 인간 vs AI
   HvH = 'HvH',   // 인간 vs 인간
-  Online = 'Online', // 온라인 대전
+  AIvsAI = 'AIvsAI', // AI vs AI (관전)
+  Challenge = 'Challenge', // 묘수 풀이
 }
 
 export enum Difficulty {
@@ -30,23 +31,36 @@ export enum Difficulty {
   Hard = 'Hard',     // Minimax Depth 4
 }
 
+export interface AIStrategy {
+  offenseWeight: number; // 공격 가중치
+  defenseWeight: number; // 방어 가중치
+  randomness: number;    // 실수 확률
+}
+
 export class GomokuGame {
-  private readonly BOARD_SIZE: number = 15;
+  private BOARD_SIZE: number = 15;
   private readonly WIN_COUNT: number = 5;
   private board: Player[][];
   private currentPlayer: Player;
   private gameState: GameState;
   private gameMode: GameMode = GameMode.HvAI; // 기본 모드는 AI 대전
   private difficulty: Difficulty = Difficulty.Easy; // 기본 난이도
+  private aiStrategy: AIStrategy = { offenseWeight: 1.0, defenseWeight: 1.0, randomness: 0.1 }; // 기본 전략
 
   private lastMove: { row: number; col: number } | null = null;
   private winLine: { row: number; col: number }[] | null = null;
   private history: { board: Player[][]; player: Player }[] = [];
+  private moveHistory: { row: number; col: number; player: Player }[] = []; // 착수 기록 (Replay용)
 
   constructor() {
     this.board = [];
     this.currentPlayer = Player.Human;
     this.gameState = GameState.Playing;
+    this.initializeBoard();
+  }
+
+  public setBoardSize(size: number): void {
+    this.BOARD_SIZE = size;
     this.initializeBoard();
   }
 
@@ -72,6 +86,9 @@ export class GomokuGame {
   public getGameMode(): GameMode {
     return this.gameMode;
   }
+  public getMoveHistory(): { row: number; col: number; player: Player }[] {
+    return this.moveHistory;
+  }
 
   public setGameMode(mode: GameMode): void {
     this.gameMode = mode;
@@ -82,6 +99,10 @@ export class GomokuGame {
     this.difficulty = diff;
   }
 
+  public setAIStrategy(strategy: AIStrategy): void {
+    this.aiStrategy = strategy;
+  }
+
   /**
    * 보드를 초기화하고 게임 상태를 리셋합니다.
    */
@@ -90,8 +111,44 @@ export class GomokuGame {
       this.board[i] = new Array(this.BOARD_SIZE).fill(Player.Empty);
     }
     this.history = [];
+    this.moveHistory = [];
     this.lastMove = null;
     this.winLine = null;
+  }
+
+  public setupChallenge(stones: { row: number; col: number; player: Player }[]): void {
+    this.initializeBoard();
+    this.gameMode = GameMode.Challenge;
+
+    for (const stone of stones) {
+      if (stone.row >= 0 && stone.row < this.BOARD_SIZE && stone.col >= 0 && stone.col < this.BOARD_SIZE) {
+        this.board[stone.row][stone.col] = stone.player;
+      }
+    }
+    this.currentPlayer = Player.Human; // Challenge always starts with Human (solve for win)
+  }
+
+  public setHandicap(count: number): void {
+    this.initializeBoard();
+    // 화점 위치 정의 (15x15 기준)
+    // 19x19, 9x9 등은 추후 확장
+    const starPoints = [
+      { r: 7, c: 7 }, // 천원
+      { r: 3, c: 3 }, { r: 3, c: 11 }, { r: 11, c: 3 }, { r: 11, c: 11 }
+    ];
+
+    const center = Math.floor(this.BOARD_SIZE / 2);
+    if (count === 1) {
+      this.board[center][center] = Player.Human;
+    } else {
+      // 간단하게 랜덤이나 지정된 위치에 배치 (여기선 중앙 및 화점)
+      // 로직 단순화: 중앙부터 배치
+      this.board[center][center] = Player.Human;
+      // 추가 구현 필요 시 확장
+    }
+
+    // 핸디캡이 있으면 백(AI)부터 시작
+    this.currentPlayer = Player.AI;
   }
 
   // --- 히스토리 및 Undo ---
@@ -123,6 +180,7 @@ export class GomokuGame {
 
       this.lastMove = null;
       this.winLine = null;
+      this.moveHistory.pop(); // Undo 시 착수 기록도 제거
       return true;
     }
     return false;
@@ -160,6 +218,7 @@ export class GomokuGame {
 
     const playerToMove = this.currentPlayer;
     this.board[row][col] = playerToMove;
+    this.moveHistory.push({ row, col, player: playerToMove }); // 착수 기록 저장
 
     this.lastMove = { row, col };
 
@@ -279,24 +338,38 @@ export class GomokuGame {
    * AI의 턴을 처리합니다.
    */
   public handleAIMove(): { row: number; col: number } | null {
-    // AI 턴이 아니거나, 게임 중이 아니거나, PVP 모드인 경우 실행하지 않음
-    if (
-      this.currentPlayer !== Player.AI ||
-      this.gameState !== GameState.Playing ||
-      this.gameMode === GameMode.HvH
-    ) {
-      return null;
+    // 게임 중이 아니면 리턴
+    if (this.gameState !== GameState.Playing) return null;
+
+    // AI vs AI 모드가 아니고, HvAI 모드인데 Human 차례라면 리턴 (Human 차례엔 AI 안둠)
+    if (this.gameMode !== GameMode.AIvsAI) {
+      if (this.gameMode === GameMode.HvH) return null; // HvH는 AI 절대 안둠
+      if (this.currentPlayer !== Player.AI) return null; // HvAI에서 Human 차례
     }
+    // AIvsAI 모드면 누구 차례든 AI가 둠 (Player 1도 AI, Player 2도 AI 취급)
 
     // 1. AI의 즉각적인 승리 시도 (공격)
-    const aiWinMove = this.findWinningMove(Player.AI);
+    // 현재 플레이어 기준 승리 수 탐색
+    const aiWinMove = this.findWinningMove(this.currentPlayer);
     if (aiWinMove) {
       this.makeMove(aiWinMove.row, aiWinMove.col);
       return aiWinMove;
     }
 
-    // 2. 플레이어의 즉각적인 승리 방어 (방어)
-    const humanWinMove = this.findWinningMove(Player.Human);
+    if (aiWinMove) {
+      this.makeMove(aiWinMove.row, aiWinMove.col);
+      return aiWinMove;
+    }
+
+    // 2. 상대방의 승리 방어
+    // 상대 플레이어 결정
+    const opponent = this.currentPlayer === Player.Human ? Player.AI : Player.Human;
+    // 주의: AIvsAI 모드에서는 둘 다 시스템상 'Player.Human', 'Player.AI' enum 값을 번갈아 쓰지만
+    // 로직상 currentPlayer가 두는 주체. opponent는 반대.
+    // GomokuGame에서는 currentPlayer가 1, 2로 바뀌므로 그냥 반대값 찾으면 됨.
+    const actualOpponent = this.currentPlayer === Player.Human ? Player.AI : Player.Human;
+
+    const humanWinMove = this.findWinningMove(actualOpponent);
     if (humanWinMove) {
       this.makeMove(humanWinMove.row, humanWinMove.col);
       return humanWinMove;
@@ -304,7 +377,13 @@ export class GomokuGame {
 
     // 3. (Fallback) 무작위 이동
     // Minimax 적용 (Medium/Hard)
-    if (this.difficulty !== Difficulty.Easy) {
+    // Randomness 적용: 일정 확률로 실수 (최적의 수가 아닌 차선의 수 또는 랜덤)
+    if (Math.random() < this.aiStrategy.randomness && this.difficulty !== Difficulty.Hard) {
+      // 실수 시뮬레이션: 무작위 빈 칸 반환 (치명적이지 않은 곳으로 하면 좋겠지만 일단 완전 랜덤)
+      // ... (코드는 그대로 두고 아래 로직으로 넘어감)
+    } else if (this.difficulty !== Difficulty.Easy) {
+      // Hard mode: Depth 4 is good, but maybe too slow in JS?
+      // Let's keep depth 4 but optimize or ensure offense weight is high.
       const depth = this.difficulty === Difficulty.Medium ? 2 : 4;
       const bestMove = this.getBestMoveMinimax(depth);
       if (bestMove) {
@@ -377,8 +456,11 @@ export class GomokuGame {
         const evalScore = this.minimax(depth - 1, alpha, beta, false);
         this.board[move.row][move.col] = Player.Empty;
 
-        maxEval = Math.max(maxEval, evalScore);
-        alpha = Math.max(alpha, evalScore);
+        // 공격 가중치 적용 (AI 턴이므로 자신의 이득)
+        const weightedScore = evalScore * (evalScore > 0 ? this.aiStrategy.offenseWeight : 1);
+
+        maxEval = Math.max(maxEval, weightedScore);
+        alpha = Math.max(alpha, weightedScore);
         if (beta <= alpha) break;
       }
       return maxEval;
@@ -389,8 +471,18 @@ export class GomokuGame {
         const evalScore = this.minimax(depth - 1, alpha, beta, true);
         this.board[move.row][move.col] = Player.Empty;
 
-        minEval = Math.min(minEval, evalScore);
-        beta = Math.min(beta, evalScore);
+        // 방어 가중치 적용 (상대 턴이므로 상대의 이득 = 나의 손해)
+        // 상대가 좋은 점수를 내는 것을 막아야 함.
+        // 여기서 점수는 AI 기준이므로, 상대에게 좋은 수는 음수(AI에게 나쁨)
+        // 상대의 공격(음수)을 더 크게 인식하게 하려면 defenseWeight를 곱함?
+        // evalScore는 AI 관점 점수. Human이 이기면 매우 작은 음수.
+        // 방어적 성향 = Human의 이득(음수)을 더 *민감하게* 받아들임. 
+        // 즉 음수일 때 가중치를 곱해서 더 작은 음수로 만듦 (더 피해야 할 상황으로 인식).
+
+        const weightedScore = evalScore * (evalScore < 0 ? this.aiStrategy.defenseWeight : 1);
+
+        minEval = Math.min(minEval, weightedScore);
+        beta = Math.min(beta, weightedScore);
         if (beta <= alpha) break;
       }
       return minEval;
