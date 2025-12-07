@@ -8,6 +8,7 @@ class SoundManager {
     private audioContext: AudioContext | null = null;
     private static instance: SoundManager;
     private isMuted: boolean = false;
+    private volume: number = 0.5; // 기본 볼륨 50%
 
     private constructor() { }
 
@@ -26,8 +27,17 @@ class SoundManager {
         return this.isMuted;
     }
 
+    public setVolume(volume: number) {
+        this.volume = Math.max(0, Math.min(1, volume));
+    }
+
+    public getVolume(): number {
+        return this.volume;
+    }
+
     private initAudioContext() {
         if (!this.audioContext) {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             this.audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
         }
     }
@@ -47,7 +57,6 @@ class SoundManager {
         gainNode.connect(this.audioContext.destination);
 
         // 나무판에 돌이 부딪히는 느낌 (낮은 주파수, 빠른 감쇠)
-        // Pitch Variation: 750Hz ~ 850Hz 사이로 랜덤 변화를 주어 자연스럽게 만듦
         const baseFreq = 800;
         const randomFreq = baseFreq + (Math.random() * 100 - 50);
 
@@ -55,7 +64,9 @@ class SoundManager {
         oscillator.frequency.setValueAtTime(randomFreq, this.audioContext.currentTime);
         oscillator.frequency.exponentialRampToValueAtTime(100, this.audioContext.currentTime + 0.1);
 
-        gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
+        // 볼륨 적용
+        const gainValue = 0.5 * this.volume;
+        gainNode.gain.setValueAtTime(gainValue, this.audioContext.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + 0.1);
 
         oscillator.start();
@@ -84,8 +95,10 @@ class SoundManager {
             osc.frequency.value = freq;
 
             const startTime = now + i * 0.1;
+            const peakGain = 0.3 * this.volume; // 볼륨 적용
+
             gain.gain.setValueAtTime(0, startTime);
-            gain.gain.linearRampToValueAtTime(0.3, startTime + 0.05);
+            gain.gain.linearRampToValueAtTime(peakGain, startTime + 0.05);
             gain.gain.exponentialRampToValueAtTime(0.01, startTime + 0.5);
 
             osc.start(startTime);
@@ -111,11 +124,20 @@ class SoundManager {
         osc.frequency.setValueAtTime(200, this.audioContext.currentTime);
         osc.frequency.linearRampToValueAtTime(100, this.audioContext.currentTime + 0.5);
 
-        gain.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+        const startGain = 0.3 * this.volume; // 볼륨 적용
+        gain.gain.setValueAtTime(startGain, this.audioContext.currentTime);
         gain.gain.linearRampToValueAtTime(0.01, this.audioContext.currentTime + 0.5);
 
         osc.start();
         osc.stop(this.audioContext.currentTime + 0.5);
+    }
+
+    public playBGM() {
+        // 배경음악 제거 요청으로 인해 기능 비활성화
+    }
+
+    public stopBGM() {
+        // 배경음악 제거 요청으로 인해 기능 비활성화
     }
 }
 

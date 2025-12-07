@@ -4,7 +4,7 @@ import styled, { keyframes } from 'styled-components';
 import { GameMode } from '../core/GomokuGame';
 
 interface ModeSelectionProps {
-    onSelectMode: (mode: GameMode) => void;
+  onSelectMode: (mode: GameMode) => void;
 }
 
 const float = keyframes`
@@ -167,44 +167,60 @@ const ModeCard = styled.div<{ $color: string }>`
 `;
 
 const ModeSelection: React.FC<ModeSelectionProps> = ({ onSelectMode }) => {
-    return (
-        <Container>
-            <Title>🎮 LEGEND GOMOKU</Title>
-            <Subtitle>게임 모드를 선택하세요</Subtitle>
+  return (
+    <Container>
+      <Title>🎮 LEGEND GOMOKU</Title>
+      <Subtitle>게임 모드를 선택하세요</Subtitle>
 
-            <CardsContainer>
-                <ModeCard $color="#4caf50" onClick={() => onSelectMode(GameMode.HvH)}>
-                    <span className="icon">🧑‍🤝‍🧑</span>
-                    <div className="title">로컬 대전</div>
-                    <div className="description">
-                        친구나 가족과 함께 한 기기에서 즐기는 클래식 오목
-                    </div>
-                    <ul className="features">
-                        <li>2인 대전 모드</li>
-                        <li>턴제 게임플레이</li>
-                        <li>금지수 규칙 적용</li>
-                        <li>무제한 플레이</li>
-                    </ul>
-                    <button className="cta">로컬 대전 시작</button>
-                </ModeCard>
+      <CardsContainer>
+        <ModeCard $color="#4caf50" onClick={() => onSelectMode(GameMode.HvH)}>
+          <span className="icon">🧑‍🤝‍🧑</span>
+          <div className="title">로컬 대전</div>
+          <div className="description">
+            친구나 가족과 함께 한 기기에서 즐기는 클래식 오목
+          </div>
+          <ul className="features">
+            <li>2인 대전 모드</li>
+            <li>턴제 게임플레이</li>
+            <li>금지수 규칙 적용</li>
+            <li>무제한 플레이</li>
+          </ul>
+          <button className="cta">로컬 대전 시작</button>
+        </ModeCard>
 
-                <ModeCard $color="#2196f3" onClick={() => onSelectMode(GameMode.HvAI)}>
-                    <span className="icon">🤖</span>
-                    <div className="title">AI 대전</div>
-                    <div className="description">
-                        강력한 AI와 대결하며 실력을 향상시키세요
-                    </div>
-                    <ul className="features">
-                        <li>3단계 난이도 선택</li>
-                        <li>AI 사고 과정 표시</li>
-                        <li>힌트 시스템</li>
-                        <li>전적 기록 저장</li>
-                    </ul>
-                    <button className="cta">AI 대전 시작</button>
-                </ModeCard>
-            </CardsContainer>
-        </Container>
-    );
+        <ModeCard $color="#2196f3" onClick={() => onSelectMode(GameMode.HvAI)}>
+          <span className="icon">🤖</span>
+          <div className="title">AI 대전</div>
+          <div className="description">
+            강력한 AI와 대결하며 실력을 향상시키세요
+          </div>
+          <ul className="features">
+            <li>3단계 난이도 선택</li>
+            <li>AI 사고 과정 표시</li>
+            <li>힌트 시스템</li>
+            <li>전적 기록 저장</li>
+          </ul>
+          <button className="cta">AI 대전 시작</button>
+        </ModeCard>
+
+
+
+        <ModeCard $color="#ff9800" onClick={() => onSelectMode(GameMode.Challenge)}>
+          <span className="icon">🧩</span>
+          <div className="title">묘수 풀이</div>
+          <div className="description">
+            주어진 상황에서 최선의 수를 찾아 승리하세요
+          </div>
+          <ul className="features">
+            <li>단계별 퍼즐</li>
+            <li>다양한 난이도</li>
+            <li>오목 전술 학습</li>
+          </ul>
+          <button className="cta">도전 시작</button>
+        </ModeCard>
+      </CardsContainer>
+    </Container>
+  );
 };
 
 export default ModeSelection;

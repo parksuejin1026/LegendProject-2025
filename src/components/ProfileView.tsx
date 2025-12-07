@@ -1,7 +1,9 @@
 import React from 'react';
 import styled from 'styled-components';
-import { Theme, themes } from '../styles/theme';
+import { Theme, themes, StoneSkinType, stoneSkins } from '../styles/theme';
 import GameHistory from './GameHistory';
+import SoundManager from '../core/SoundManager';
+import { PERSONAS, PersonaType } from '../core/AIPersona';
 
 const Container = styled.div`
   padding: 20px;
@@ -34,7 +36,7 @@ const Avatar = styled.div`
 
 const UserInfo = styled.div`
   flex: 1;
-`;
+  `;
 
 const Username = styled.h2`
   margin: 0;
@@ -158,6 +160,31 @@ const ToggleSlider = styled.span`
   }
 `;
 
+const VolumeSlider = styled.input`
+  -webkit-appearance: none;
+  width: 100px;
+  height: 6px;
+  background: ${({ theme }) => theme.buttonBg};
+  border-radius: 5px;
+  outline: none;
+  margin-right: 15px;
+
+  &::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: ${({ theme }) => theme.highlightWin};
+    cursor: pointer;
+    transition: transform 0.2s;
+  }
+
+  &::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+  }
+`;
+
 const LogoutButton = styled.button`
   width: 100%;
   padding: 15px;
@@ -176,16 +203,25 @@ const LogoutButton = styled.button`
 `;
 
 interface ProfileViewProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   user: any;
   stats: { wins: number; losses: number; draws: number };
   currentTheme: string;
   onThemeChange: (theme: string) => void;
+  currentSkin: StoneSkinType;
+  onSkinChange: (skin: StoneSkinType) => void;
   isMuted: boolean;
   onMuteToggle: () => void;
   showHeatmap: boolean;
   onHeatmapToggle: () => void;
   onLogout: () => void;
+  customThemes?: Theme[];
+  onCreateTheme?: () => void;
   onLoginClick: () => void;
+  currentPersona: PersonaType;
+  onPersonaChange: (persona: PersonaType) => void;
+  currentBoardSize: number;
+  onBoardSizeChange: (size: number) => void;
 }
 
 const ProfileView: React.FC<ProfileViewProps> = ({
@@ -193,13 +229,57 @@ const ProfileView: React.FC<ProfileViewProps> = ({
   stats,
   currentTheme,
   onThemeChange,
+  currentSkin,
+  onSkinChange,
   isMuted,
   onMuteToggle,
   showHeatmap,
   onHeatmapToggle,
   onLogout,
-  onLoginClick
+  onLoginClick,
+  currentPersona,
+  onPersonaChange,
+  currentBoardSize,
+  onBoardSizeChange,
+  customThemes,
+  onCreateTheme,
 }) => {
+  const [volume, setVolume] = React.useState(Math.round(SoundManager.getVolume() * 100));
+
+  const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newVol = Number(e.target.value);
+    setVolume(newVol);
+    SoundManager.setVolume(newVol / 100);
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [deferredPrompt, setDeferredPrompt] = React.useState<any>(null);
+
+  React.useEffect(() => {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleBeforeInstallPrompt = (e: any) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallClick = () => {
+    if (deferredPrompt) {
+      deferredPrompt.prompt();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      deferredPrompt.userChoice.then((choiceResult: any) => {
+        if (choiceResult.outcome === 'accepted') {
+          console.log('User accepted the install prompt');
+        } else {
+          console.log('User dismissed the install prompt');
+        }
+        setDeferredPrompt(null);
+      });
+    }
+  };
+
   return (
     <Container>
       <Header>
@@ -209,6 +289,23 @@ const ProfileView: React.FC<ProfileViewProps> = ({
           <UserStatus>{user ? '온라인' : '로그인이 필요합니다'}</UserStatus>
         </UserInfo>
       </Header>
+
+      {/* 앱 설치 버튼 (설치 가능할 때만 표시) */}
+      {deferredPrompt && (
+        <Card style={{ background: 'linear-gradient(45deg, #FF6B6B, #556270)', textAlign: 'center' }}>
+          <h3 style={{ margin: '0 0 10px 0', color: 'white' }}>📱 앱으로 설치하기</h3>
+          <p style={{ margin: '0 0 15px 0', fontSize: '0.9rem', opacity: 0.9 }}>더 빠르고 쾌적하게 즐겨보세요!</p>
+          <ThemeButton
+            $active={true}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            theme={{ highlightWin: 'white' } as any}
+            onClick={handleInstallClick}
+            style={{ color: '#333', fontWeight: 'bold', padding: '10px 20px', fontSize: '1rem' }}
+          >
+            홈 화면에 추가
+          </ThemeButton>
+        </Card>
+      )}
 
       {user && (
         <Section>
@@ -239,7 +336,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({
         <Card>
           <SettingRow>
             <SettingLabel>테마 설정</SettingLabel>
-            <div>
+            <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap' }}>
               {Object.keys(themes).map((key) => (
                 <ThemeButton
                   key={key}
@@ -249,14 +346,102 @@ const ProfileView: React.FC<ProfileViewProps> = ({
                   {themes[key].name}
                 </ThemeButton>
               ))}
+              {/* Custom Themes */}
+              {customThemes?.map((theme) => (
+                <ThemeButton
+                  key={theme.name}
+                  $active={currentTheme === theme.name}
+                  onClick={() => onThemeChange(theme.name)}
+                >
+                  {theme.name}
+                </ThemeButton>
+              ))}
+              {/* Create Button */}
+              {onCreateTheme && (
+                <ThemeButton
+                  $active={false}
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  theme={{ highlightWin: '#aaa' } as any} // Placeholder theme struct
+                  onClick={onCreateTheme}
+                  style={{ border: '1px dashed #aaa', color: '#aaa' }}
+                >
+                  + 만들기
+                </ThemeButton>
+              )}
             </div>
           </SettingRow>
           <SettingRow>
-            <SettingLabel>효과음</SettingLabel>
+            <SettingLabel>바둑돌 스킨</SettingLabel>
+            <div>
+              {Object.keys(stoneSkins).map((key) => {
+                const skinKey = key as StoneSkinType;
+                return (
+                  <ThemeButton
+                    key={skinKey}
+                    $active={currentSkin === skinKey}
+                    onClick={() => onSkinChange(skinKey)}
+                  >
+                    {stoneSkins[skinKey].name}
+                  </ThemeButton>
+                );
+              })}
+            </div>
+          </SettingRow>
+          <SettingRow>
+            <SettingLabel>보드 크기</SettingLabel>
+            <div>
+              {[9, 15, 19].map(size => (
+                <ThemeButton
+                  key={size}
+                  $active={currentBoardSize === size}
+                  onClick={() => {
+                    onBoardSizeChange(size);
+                  }}
+                >
+                  {size}x{size}
+                </ThemeButton>
+              ))}
+            </div>
+          </SettingRow>
+          <SettingRow>
+            <SettingLabel>AI 성격</SettingLabel>
+            <div style={{ display: 'flex', gap: '5px' }}>
+              {Object.keys(PERSONAS).map((key) => {
+                const pKey = key as PersonaType;
+                return (
+                  <ThemeButton
+                    key={pKey}
+                    $active={currentPersona === pKey}
+                    onClick={() => onPersonaChange(pKey)}
+                    title={PERSONAS[pKey].description}
+                  >
+                    {PERSONAS[pKey].icon} {PERSONAS[pKey].name.split('(')[0]}
+                  </ThemeButton>
+                );
+              })}
+            </div>
+          </SettingRow>
+          <SettingRow>
+            <SettingLabel>효과음 (Mute)</SettingLabel>
             <ToggleSwitch>
               <ToggleInput type="checkbox" checked={!isMuted} onChange={onMuteToggle} />
               <ToggleSlider />
             </ToggleSwitch>
+          </SettingRow>
+          <SettingRow>
+            <SettingLabel>볼륨 크기</SettingLabel>
+            <div style={{ display: 'flex', alignItems: 'center' }}>
+              <VolumeSlider
+                type="range"
+                min="0"
+                max="100"
+                value={volume}
+                onChange={handleVolumeChange}
+                disabled={isMuted}
+                style={{ opacity: isMuted ? 0.5 : 1 }}
+              />
+              <span style={{ fontSize: '0.9rem', width: '30px', textAlign: 'right' }}>{volume}%</span>
+            </div>
           </SettingRow>
           <SettingRow>
             <SettingLabel>AI 힌트 보기</SettingLabel>

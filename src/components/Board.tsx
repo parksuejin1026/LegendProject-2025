@@ -11,7 +11,8 @@ import { Player } from '../core/GomokuGame';
 import Cell from './Cell';
 import styled from 'styled-components';
 import SoundManager from '../core/SoundManager';
-import { Theme } from '../styles/theme';
+import { Theme, StoneSkinType } from '../styles/theme';
+
 
 interface BoardProps {
   boardState: Player[][]; // 현재 보드 상태 (2차원 배열)
@@ -22,6 +23,9 @@ interface BoardProps {
   winLine: { row: number; col: number }[] | null; // 승리 라인 좌표 배열
   heuristicMap: number[][] | null; // AI 평가 점수 맵
   checkForbidden: (row: number, col: number) => boolean; // 금지수 확인 함수
+  currentPlayer: Player; // 현재 플레이어 (고스트 스톤용)
+  skin: StoneSkinType; // 스킨 prop 추가
+  activeCursor?: { r: number; c: number } | null; // 키보드 커서
 }
 
 // --- 스타일된 컴포넌트 ---
@@ -124,6 +128,40 @@ const IntersectionPoint = styled.div<{ $row: number; $col: number; $size: number
   }}
 `;
 
+/*
+const drawLine = keyframes`
+  from {
+    stroke-dashoffset: 1000;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+`;
+*/
+
+/*
+const WinLineOverlay = styled.svg`
+  position: absolute;
+  top: 30px;
+  left: 30px;
+  right: 30px;
+  bottom: 30px;
+  width: calc(100% - 60px);
+  height: calc(100% - 60px);
+  pointer-events: none;
+  z-index: 20;
+
+  line {
+    stroke: ${({ theme }) => theme.highlightWin};
+    stroke-width: 8;
+    stroke-linecap: round;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: ${drawLine} 1s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+`;
+*/
+
 const Board: React.FC<BoardProps> = ({
   boardState,
   boardSize,
@@ -133,6 +171,9 @@ const Board: React.FC<BoardProps> = ({
   winLine,
   heuristicMap,
   checkForbidden,
+  currentPlayer,
+  skin,
+  activeCursor,
 }) => {
   const [hoveredCell, setHoveredCell] = React.useState<{ row: number; col: number } | null>(null);
 
@@ -178,6 +219,7 @@ const Board: React.FC<BoardProps> = ({
           <IntersectionPoint key={`${r}-${c}`} $row={r} $col={c} $size={boardSize}>
             <Cell
               value={cellValue}
+              currentPlayer={currentPlayer} // Cell에 현재 플레이어 전달
               onClick={() => {
                 onCellClick(r, c);
                 if (cellValue === Player.Empty && !isGameOver) {
@@ -189,13 +231,31 @@ const Board: React.FC<BoardProps> = ({
               isOnWinLine={isCoordinateInWinLine(r, c)}
               heuristicScore={heuristicMap ? heuristicMap[r][c] : undefined}
               checkForbidden={() => checkForbidden(r, c)}
-              isHovered={hoveredCell?.row === r && hoveredCell?.col === c}
+              isHovered={
+                (hoveredCell?.row === r && hoveredCell?.col === c) ||
+                (activeCursor?.r === r && activeCursor?.c === c)
+              }
               onMouseEnter={() => setHoveredCell({ row: r, col: c })}
               onMouseLeave={() => setHoveredCell(null)}
+              skin={skin} // Cell에 스킨 전달
             />
           </IntersectionPoint>
         ))
       )}
+
+
+      {/* 승리 라인 애니메이션 */}
+      {/* 승리 라인 애니메이션 제거 (사용자 요청) */}
+      {/* {winLine && winLine.length > 0 && (
+        <WinLineOverlay viewBox={`0 0 ${boardSize - 1} ${boardSize - 1}`} preserveAspectRatio="none">
+          <line
+            x1={winLine[0].col}
+            y1={winLine[0].row}
+            x2={winLine[winLine.length - 1].col}
+            y2={winLine[winLine.length - 1].row}
+          />
+        </WinLineOverlay>
+      )} */}
     </BoardContainer>
   );
 };

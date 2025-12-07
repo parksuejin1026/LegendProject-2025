@@ -4,8 +4,9 @@
  * 게임 인스턴스를 생성하고 상태를 동기화합니다.
  */
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { GomokuGame, Player, GameState, GameMode, Difficulty } from '../core/GomokuGame';
+import { PERSONAS, PersonaType } from '../core/AIPersona';
 
 export const useGomokuGame = () => {
   const [gameInstance, setGameInstance] = useState(() => new GomokuGame());
@@ -20,6 +21,20 @@ export const useGomokuGame = () => {
   const [showHeatmap, setShowHeatmap] = useState(false);
   const [heuristicMap, setHeuristicMap] = useState<number[][] | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [moveHistory, setMoveHistory] = useState(gameInstance.getMoveHistory());
+
+  // AI Persona State
+  const [currentPersona, setCurrentPersona] = useState<PersonaType>('standard');
+  const [aiMessage, setAiMessage] = useState<string | null>(null);
+
+  // AI 메시지 출력 헬퍼
+  const triggerAiMessage = useCallback((type: 'start' | 'win' | 'lose' | 'waiting' | 'defense' | 'offense') => {
+    const persona = PERSONAS[currentPersona];
+    const msgs = persona.dialogues[type];
+    const randomMsg = msgs[Math.floor(Math.random() * msgs.length)];
+    setAiMessage(randomMsg);
+    setTimeout(() => setAiMessage(null), 3000); // 3초 후 사라짐
+  }, [currentPersona]);
 
   // 게임 상태를 React 상태로 동기화하는 함수
   // GomokuGame 인스턴스의 내부 상태를 React state로 복사하여 UI 업데이트를 트리거합니다.
@@ -30,6 +45,7 @@ export const useGomokuGame = () => {
     setGameModeState(game.getGameMode());
     setLastMove(game.getLastMove());
     setWinLine(game.getWinLine());
+    setMoveHistory([...game.getMoveHistory()]); // 배열 복사
     if (showHeatmap) {
       setHeuristicMap(game.getHeuristicMap());
     }
@@ -47,9 +63,14 @@ export const useGomokuGame = () => {
         setErrorMessage(null); // 성공 시 에러 메시지 초기화
         updateGameState(gameInstance); // UI 업데이트
 
+        // AI 턴 시작 메시지
+        if (gameInstance.getCurrentPlayer() === Player.AI && gameInstance.getGameState() === GameState.Playing) {
+          triggerAiMessage('waiting');
+        }
+
         // AI 턴일 경우, 약간의 지연 후 AI 착수 실행 (HvAI 모드일 때만)
         if (
-          gameInstance.getGameMode() === GameMode.HvAI &&
+          (gameInstance.getGameMode() === GameMode.HvAI || gameInstance.getGameMode() === GameMode.Challenge) &&
           gameInstance.getCurrentPlayer() === Player.AI &&
           gameInstance.getGameState() === GameState.Playing
         ) {
@@ -101,7 +122,7 @@ export const useGomokuGame = () => {
         }
       }
     },
-    [gameInstance, updateGameState]
+    [gameInstance, updateGameState, triggerAiMessage]
   );
 
 
@@ -149,7 +170,34 @@ export const useGomokuGame = () => {
     [gameMode, updateGameState]
   );
 
-  // Heatmap 토글
+  // 묘수 풀이 시작
+  const startChallenge = useCallback((initialStones: { row: number; col: number; player: Player }[]) => {
+    const newGame = new GomokuGame();
+    newGame.setupChallenge(initialStones);
+    // AI 모드는 방어로 설정 (무조건 막기 위해 Defensive 추천)
+    newGame.setAIStrategy(PERSONAS['defensive'].strategy);
+    newGame.setDifficulty(Difficulty.Hard);
+
+    setGameInstance(newGame);
+    setGameModeState(GameMode.Challenge);
+    updateGameState(newGame);
+  }, [updateGameState]);
+
+  // 페르소나 변경
+  const setPersona = useCallback((personaId: PersonaType) => {
+    setCurrentPersona(personaId);
+    gameInstance.setAIStrategy(PERSONAS[personaId].strategy);
+    triggerAiMessage('start');
+  }, [gameInstance, triggerAiMessage]);
+
+  // 게임 종료 시 AI 메시지
+  useEffect(() => {
+    if (gameMode === GameMode.HvAI) {
+      if (gameState === GameState.AIWin) triggerAiMessage('win');
+      else if (gameState === GameState.HumanWin) triggerAiMessage('lose');
+    }
+  }, [gameState, gameMode, triggerAiMessage]);
+
   const toggleHeatmap = useCallback(() => {
     setShowHeatmap((prev) => {
       const next = !prev;
@@ -161,6 +209,11 @@ export const useGomokuGame = () => {
       return next;
     });
   }, [gameInstance]);
+
+  const setBoardSize = useCallback((size: number) => {
+    gameInstance.setBoardSize(size);
+    updateGameState(gameInstance);
+  }, [gameInstance, updateGameState]);
 
   return {
     boardState,
@@ -182,5 +235,11 @@ export const useGomokuGame = () => {
     heuristicMap,
     errorMessage,
     checkForbidden: (row: number, col: number) => gameInstance.checkForbiddenMove(row, col, currentPlayer),
+    moveHistory,
+    currentPersona,
+    setPersona,
+    aiMessage,
+    startChallenge,
+    setBoardSize,
   };
 };

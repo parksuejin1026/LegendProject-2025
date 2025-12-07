@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-2.1.0-blue.svg)
 ![Next.js](https://img.shields.io/badge/Next.js-14-black)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
@@ -18,7 +18,7 @@
 ## 💡 프로젝트 개요
 
 **LEGEND GOMOKU**는 전통적인 오목 게임을 현대적인 웹 기술로 재해석한 프리미엄 게임 플랫폼입니다.
-Next.js와 TypeScript로 개발되었으며, 세련된 UI/UX와 강력한 AI를 제공합니다.
+Next.js와 TypeScript로 개발되었으며, 세련된 UI/UX와 독창적인 AI 페르소나 시스템을 제공합니다.
 
 ### ✨ 주요 기능
 
@@ -26,65 +26,42 @@ Next.js와 TypeScript로 개발되었으며, 세련된 UI/UX와 강력한 AI를 
 - **🤖 AI 대전 (PvE)**
   - Minimax 알고리즘 + Alpha-Beta 가지치기 기반 강력한 AI
   - 3단계 난이도: 🐣 쉬움 / 🐥 보통 / 🦅 어려움
-  - AI 사고 과정 실시간 표시
-  - 힌트 시스템 (AI 평가 점수 히트맵)
+  - **AI 페르소나 시스템**: 🐯 공격형, 🐢 방어형, 🦊 트릭스터 등 다양한 성격의 AI
+  - AI 사고 과정 실시간 표시 및 힌트 시스템
 
 - **👥 로컬 대전 (PvP)**
   - 한 기기에서 2인 플레이
-  - 금지수 규칙 적용
-  - 턴제 게임플레이
+  - 금지수 규칙 (렌주룰) 완벽 적용
+
+- **🧩 묘수 풀이 (Challenge Mode)**
+  - 다양한 오목 퍼즐 해결
+  - 전략적 수 읽기 능력 향상
 
 #### 🎨 프리미엄 UI/UX
-- **⏱️ 원형 프로그레스 타이머**
-  - 시간에 따른 색상 변화 (녹색 → 빨간색)
-  - 10초 이하 긴박감 표현 (펄스 애니메이션)
-  - 첫 수 이후 자동 시작
+- **✨ 다이내믹 비주얼**
+  - **Global Particles Background**: 앱 전체를 감싸는 신비로운 파티클 배경
+  - **Glassmorphism UI**: 유려한 반투명 유리 질감의 카드 및 UI 디자인
+  - 💎 고급 애니메이션: 돌 드롭 인(Drop-in), 리플(Ripple) 효과, 승리선 글로우
 
-- **💎 고급 애니메이션**
-  - 💧 돌 드롭 인 효과 (위에서 떨어짐)
-  - 🌊 리플 효과 (물결 퍼짐)
-  - ✨ 승리선 글로우 효과
-  - 🎊 승리 시 Confetti
+- **🪵 테마 커스터마이징**
+  - **🎨 나만의 테마 만들기 (Custom Theme Creator)**: 보드, 배경, 돌 색상을 자유롭게 조합하여 저장
+  - 기본 제공 테마: Modern, Wood, Dark, Neon
 
 - **🪵 프리미엄 바둑판**
-  - 나무 질감 그라데이션 배경
-  - 전통 방식 교차점 기반 돌 배치
-  - 화점 (Star Points) 표시
-  - 다층 그림자 효과
+  - 나무 질감 그라데이션, 다층 그림자 효과
+  - 화점 (Star Points) 및 좌표 표시
 
-- **🎴 모드 선택 페이지**
-  - 3D 카드 디자인
-  - 호버 시 Float 애니메이션
-  - 각 모드별 상세 설명
+#### 🏆 게임 시스템 & 소셜
+- **💬 이모티콘 채팅 (Emote Chat)**
+  - 게임 중 상대방(혹은 AI)에게 감정 표현 보내기 (메아리 기능)
 
-#### 🏆 게임 시스템
-- **📊 게임 기록 시스템**
-  - 최근 10게임 자동 저장
-  - 승률 실시간 계산
-  - 게임 통계 시각화
-  - LocalStorage 활용
+- **⏪ 복기 시스템 (Replay System)**
+  - 게임 종료 후 한 수씩 되돌려보며 전략 분석 가능
+  - 슬라이더를 통한 직관적인 탐색
 
-- **🎯 결과 모달**
-  - 승리/패배/무승부 전용 화면
-  - 게임 통계 표시 (총 수, 소요 시간)
-  - 부드러운 애니메이션
-
-- **🎵 사운드 효과**
-  - 돌 놓는 소리
-  - 승리/패배 효과음
-  - 음소거 토글
-
-#### 🎨 테마 시스템
-- **Modern**: 현대적이고 깔끔한 디자인
-- **Wood**: 전통 나무 바둑판 느낌
-- **Dark**: 다크 모드
-- **Neon**: 네온 사이버펑크 스타일
-
-#### 📱 모바일 최적화
-- 반응형 디자인
-- 터치 최적화
-- 하단 네비게이션 바
-- 모바일 전용 레이아웃
+- **📊 게임 기록 및 프로필**
+  - 승/패/무 전적 자동 저장 및 통계 시각화
+  - 최근 10게임 히스토리 관리
 
 ---
 
@@ -94,10 +71,10 @@ Next.js와 TypeScript로 개발되었으며, 세련된 UI/UX와 강력한 AI를 
 |:---|:---|:---|
 | **프레임워크** | Next.js 14 | React 기반 풀스택 프레임워크 |
 | **언어** | TypeScript 5.0 | 정적 타입 시스템 |
-| **스타일링** | Styled-components | CSS-in-JS |
-| **데이터베이스** | MongoDB + Mongoose | NoSQL 데이터베이스 |
-| **상태 관리** | React Hooks | useState, useCallback, useEffect |
-| **애니메이션** | Keyframes, Canvas Confetti | 부드러운 애니메이션 |
+| **스타일링** | Styled-components | CSS-in-JS & Global Theming |
+| **데이터베이스** | MongoDB + Mongoose | NoSQL 데이터베이스 (사용자 정보/전적) |
+| **상태 관리** | React Hooks (Custom) | 복잡한 게임 로직 캡슐화 |
+| **애니메이션** | CSS Keyframes, Canvas | 고성능 애니메이션 및 파티클 |
 
 ---
 
@@ -147,33 +124,21 @@ Next.js와 TypeScript로 개발되었으며, 세련된 UI/UX와 강력한 AI를 
 ```
 LegendProject-2025/
 ├── src/
-│   ├── core/                 # 게임 핵심 로직
-│   │   ├── GomokuGame.ts    # 메인 게임 엔진
-│   │   ├── AI.ts            # Minimax AI
-│   │   ├── SoundManager.ts  # 사운드 관리
-│   │   ├── StorageManager.ts # 로컬 저장소
-│   │   └── HistoryManager.ts # 게임 기록
+│   ├── core/                 # 게임 핵심 로직 (AI, 엔진)
 │   ├── components/           # UI 컴포넌트
-│   │   ├── Board.tsx        # 게임 보드
-│   │   ├── Cell.tsx         # 개별 셀
-│   │   ├── ModeSelection.tsx # 모드 선택
-│   │   ├── GameResultModal.tsx # 결과 모달
-│   │   ├── GameHistory.tsx  # 게임 기록
-│   │   ├── LandingPage.tsx  # 랜딩 페이지
-│   │   ├── ProfileView.tsx  # 프로필
+│   │   ├── game/            # 게임 관련 (Controls, Status)
+│   │   ├── Board.tsx        # 메인 보드
+│   │   ├── CustomThemeCreator.tsx # 테마 제작기
+│   │   ├── EmoteChat.tsx    # 이모티콘 채팅
+│   │   ├── ParticlesBackground.tsx # 배경 효과
 │   │   └── ...
-│   ├── hooks/               # 커스텀 훅
-│   │   └── useGomokuGame.ts
-│   ├── styles/              # 스타일
-│   │   └── theme.ts
-│   └── App.tsx              # 메인 앱
+│   ├── hooks/               # useGomokuGame (게임 상태 관리)
+│   ├── styles/              # Global Style & Theme Defs
+│   └── App.tsx              # 메인 애플리케이션 진입점
 ├── pages/
-│   ├── api/                 # API 라우트
-│   │   ├── auth/           # 인증
-│   │   ├── game/           # 게임 데이터
-│   │   └── rankings.ts     # 랭킹
+│   ├── api/                 # Next.js API Routes
 │   └── index.tsx
-└── public/                  # 정적 파일
+└── public/                  # 정적 리소스
 ```
 
 ---
@@ -182,47 +147,40 @@ LegendProject-2025/
 
 ### 기본 규칙
 1. 15x15 바둑판에서 진행
-2. 흑돌이 먼저 시작
-3. 가로, 세로, 대각선으로 5개를 먼저 놓으면 승리
-4. 금지수 규칙 적용 (렌주룰)
+2. 흑돌이 먼저 시작 (선수)
+3. 5목을 먼저 완성하면 승리 (오목)
+4. **금지수 (렌주룰)**: 흑돌은 3-3, 4-4, 6목 이상 금지 (백돌은 허용)
 
 ### 조작 방법
-- **마우스**: 교차점 클릭으로 돌 배치
-- **터치**: 모바일에서 탭으로 배치
-- **되돌리기**: 이전 수로 복귀
-- **다시 시작**: 새 게임 시작
+- **클릭/터치**: 돌 착수
+- **방향키**: 키보드로 커서 이동 후 Space/Enter로 착수 가능
+- **Ctrl+Z**: 무르기 (Human vs AI 모드)
+- **R**: 재시작
 
 ---
 
 ## 📊 버전 히스토리
 
-### v2.0.0 (2025-12-04) - UI/UX 대규모 개선
-- ⏱️ 원형 프로그레스 타이머 추가
-- 💧 돌 놓기 애니메이션 (드롭 인 + 리플)
-- 🤖 AI 사고 중 인디케이터
-- 🪵 프리미엄 바둑판 디자인
-- 🎯 교차점 기반 돌 배치
-- 🏆 승리/패배 전용 모달
-- 📊 게임 기록 시스템
-- 🎴 모드 선택 전용 페이지
+### v2.1.0 (2025-12-07) - 기능 확장 및 시각적 개선
+- 🧩 묘수 풀이 (Challenge Mode) 추가
+- 🎨 커스텀 테마 제작 기능 (Custom Theme Creator)
+- 💬 이모티콘 채팅 시스템 도입
+- ✨ Glassmorphism UI 및 Global Particles 적용
+- 🤖 AI 페르소나 시스템 (성격 부여)
 
-### v1.x - 기본 기능
-- 기본 게임 로직
-- AI 구현
-- 테마 시스템
-- MongoDB 연동
+### v2.0.0 (2025-12-04) - UI/UX 대규모 개선
+- 프리미엄 디자인 리뉴얼
+- 애니메이션 및 사운드 효과 강화
+- 게임 기록 및 복기 시스템
+
+### v1.0.0 - 초기 릴리즈
+- 기본 오목 게임 로직 및 AI 구현
 
 ---
 
 ## 🤝 기여하기
 
-프로젝트에 기여하고 싶으시다면:
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
+프로젝트에 기여하고 싶으시다면 PR을 보내주세요! 버그 제보와 기능 제안도 환영합니다.
 
 ---
 
@@ -236,19 +194,7 @@ LegendProject-2025/
 
 **박수진 (Park Suejin)**
 - GitHub: [@parksuejin1026](https://github.com/parksuejin1026)
-- Email: parksuejin1026@gmail.com
-
----
-
-## 🙏 감사의 말
-
-이 프로젝트는 다음 기술들을 사용하여 만들어졌습니다:
-- [Next.js](https://nextjs.org/)
-- [React](https://reactjs.org/)
-- [TypeScript](https://www.typescriptlang.org/)
-- [Styled Components](https://styled-components.com/)
-- [MongoDB](https://www.mongodb.com/)
-- [Canvas Confetti](https://www.kirilv.com/canvas-confetti/)
+- Email: parksuejin1026@naver.com
 
 ---
 

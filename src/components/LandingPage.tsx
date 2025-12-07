@@ -94,6 +94,7 @@ const ErrorMessage = styled.p`
 `;
 
 interface LandingPageProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onLoginSuccess: (user: any) => void;
   onGuestClick: () => void;
 }
@@ -132,6 +133,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginSuccess, onGuestClick 
         setError('회원가입 성공! 로그인해주세요.');
         setPassword('');
       }
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       setError(err.message);
     } finally {

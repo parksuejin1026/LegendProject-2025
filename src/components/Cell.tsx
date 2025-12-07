@@ -8,32 +8,23 @@
 import React from 'react';
 import styled, { keyframes, css } from 'styled-components';
 import { Player } from '../core/GomokuGame';
-import { Theme } from '../styles/theme';
+import { Theme, StoneSkinType, stoneSkins } from '../styles/theme';
 
 // --- Styled Components 정의 ---
 
-const pulse = keyframes`
-  0%, 100% {
-    transform: translate(-50%, -50%) scale(1);
-    box-shadow: 0 0 20px 8px rgba(255, 215, 0, 0.8);
-  }
-  50% {
-    transform: translate(-50%, -50%) scale(1.15);
-    box-shadow: 0 0 30px 15px rgba(255, 215, 0, 1);
-  }
-`;
+
 
 const dropIn = keyframes`
   0% {
-    transform: translate(-50%, -200%) scale(0.3);
+    transform: translate(-50%, -50%) scale(1.5);
     opacity: 0;
   }
-  60% {
-    transform: translate(-50%, -50%) scale(1.1);
+  50% {
+    transform: translate(-50%, -50%) scale(0.9);
     opacity: 1;
   }
-  80% {
-    transform: translate(-50%, -50%) scale(0.95);
+  75% {
+    transform: translate(-50%, -50%) scale(1.1);
   }
   100% {
     transform: translate(-50%, -50%) scale(1);
@@ -76,6 +67,7 @@ const Stone = styled.div<{
   $player: Player;
   $isOnWinLine: boolean;
   $isLastMove: boolean;
+  $skin: StoneSkinType;
   theme: Theme;
 }>`
   position: absolute;
@@ -89,21 +81,23 @@ const Stone = styled.div<{
   animation: ${dropIn} 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   border: 1px solid ${({ $player }) => ($player === Player.Human ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.2)')};
 
-  background: ${({ $player, theme }) =>
-    $player === Player.Human
-      ? `radial-gradient(circle at 30% 30%, #666, ${theme.stoneBlack})`
-      : $player === Player.AI
-        ? `radial-gradient(circle at 30% 30%, #fff, ${theme.stoneWhite})`
-        : 'transparent'};
+  background: ${({ $player, $skin }) => {
+    if ($player === Player.Empty) return 'transparent';
+    const skin = stoneSkins[$skin];
+    return $player === Player.Human ? skin.black : skin.white;
+  }};
 
-  box-shadow: ${({ $player }) =>
-    $player === Player.Empty ? 'none' : '2px 2px 4px rgba(0, 0, 0, 0.5), inset -2px -2px 4px rgba(0,0,0,0.2)'};
+  box-shadow: ${({ $player, $skin }) => {
+    if ($player === Player.Empty) return 'none';
+    return stoneSkins[$skin].shadow;
+  }};
 
   ${({ $isOnWinLine }) =>
     $isOnWinLine &&
     css`
-      animation: ${pulse} 1.5s infinite ease-in-out;
-      filter: brightness(1.3);
+      /* 사용자의 요청으로 승리 시 돌 위의 노란 원(하이라이트) 효과 제거 */
+      /* z-index만 높여서 라인 위에 올라오게 할지 여부는 선택사항이나, 일단 효과 없음 */
+      z-index: 15;
     `}
 
   ${({ $isOnWinLine, $isLastMove }) =>
@@ -116,19 +110,27 @@ const Stone = styled.div<{
         top: 50%;
         left: 50%;
         transform: translate(-50%, -50%);
+        width: 40%;
+        height: 40%;
+        background-color: transparent;
+        border: 3px solid ${({ theme }) => theme.highlightLast};
+        /* 삼각형 모양 (clip-path 사용 시 border와 충돌하므로 단순 원형 테두리 또는 다른 방식 고려) */
+        /* 여기서는 가시성 높은 붉은 점/삼각형 등을 고려. */
+        /* 단순하고 깔끔하게: 붉은 점 */
         width: 30%;
         height: 30%;
         background-color: ${({ theme }) => theme.highlightLast};
+        border: 2px solid #fff;
         border-radius: 50%;
-        box-shadow: 0 0 5px ${({ theme }) => theme.highlightLast};
+        box-shadow: 0 0 8px ${({ theme }) => theme.highlightLast};
+        z-index: 20;
       }
     `}
 `;
 
-// --- 컴포넌트 구현 ---
-
 interface CellProps {
   value: Player;
+  currentPlayer: Player; // 추가
   onClick: () => void;
   isGameOver: boolean;
   isLastMove: boolean;
@@ -138,10 +140,12 @@ interface CellProps {
   isHovered?: boolean;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
+  skin?: StoneSkinType;
 }
 
 const Cell: React.FC<CellProps> = ({
   value,
+  currentPlayer,
   onClick,
   isGameOver,
   isLastMove,
@@ -151,9 +155,13 @@ const Cell: React.FC<CellProps> = ({
   isHovered,
   onMouseEnter,
   onMouseLeave,
+  skin = 'standard',
 }) => {
+  // ... (unchanged logic) ...
   const isClickable = !isGameOver && value === Player.Empty;
   const [isForbidden, setIsForbidden] = React.useState(false);
+
+  // ... (handleMouseEnter/Leave, backgroundColor logic) ...
 
   const handleMouseEnter = () => {
     if (isClickable && checkForbidden()) {
@@ -204,18 +212,20 @@ const Cell: React.FC<CellProps> = ({
       )}
       {value !== Player.Empty && (
         <>
-          <Stone $player={value} $isOnWinLine={isOnWinLine} $isLastMove={isLastMove} />
+          {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
+          <Stone $player={value} $isOnWinLine={isOnWinLine} $isLastMove={isLastMove} $skin={skin} theme={{} as any} />
           {isLastMove && !isGameOver && <RippleEffect $player={value} />}
         </>
       )}
       {/* Ghost Stone */}
-      {value === Player.Empty && isHovered && (
+      {value === Player.Empty && isHovered && !isForbidden && (
         <Stone
-          $player={Player.Human} // 고스트 스톤은 항상 현재 플레이어(흑/백) 색상이어야 하지만, 여기선 간단히 Human(흑)으로 가정하거나 상위에서 받아와야 함.
-          // 실제로는 Board에서 currentPlayer를 받아와야 정확함. 
-          // 일단 투명도만 줘서 표시.
+          $player={currentPlayer} // 현재 플레이어 색상 적용
           $isOnWinLine={false}
           $isLastMove={false}
+          $skin={skin}
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          theme={{} as any}
           style={{ opacity: 0.5, transform: 'translate(-50%, -50%) scale(0.9)' }}
         />
       )}
